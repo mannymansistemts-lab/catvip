@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Generador SEO YouTube Mejorado</title>
+
+  <!-- DESACTIVAR CACHÉ -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
   <style>
     body {
       background: #111;
@@ -86,19 +92,19 @@
   <h2>Tendencias Actuales en YouTube México</h2>
   <ul id="tendencias"><li>Cargando...</li></ul>
 
-  <!-- API script para obtener tendencias -->
-  <script src="trends.js"></script>
-  <script>
-    // Asumimos que trends.js expone una función llamada fetchYouTubeTrends(callback)
-    // que llama a callback pasando un array de tendencias strings
+  <!-- AQUÍ SE CONSERVA TU API, SOLO SIN CACHE -->
+  <script src="trends.js?v=1000"></script>
 
+  <script>
     function mostrarTendencias(tendencias) {
       const lista = document.getElementById('tendencias');
-      lista.innerHTML = ''; // limpiar anteriores
+      lista.innerHTML = '';
+
       if (!tendencias || tendencias.length === 0) {
         lista.innerHTML = '<li>No se encontraron tendencias.</li>';
         return;
       }
+
       tendencias.forEach(trend => {
         const li = document.createElement('li');
         li.textContent = trend;
@@ -106,14 +112,12 @@
       });
     }
 
-    // Llamamos la función de trends.js para cargar tendencias al inicio
     if (typeof fetchYouTubeTrends === "function") {
       fetchYouTubeTrends(mostrarTendencias);
     } else {
       document.getElementById('tendencias').innerHTML = '<li>Error: No se pudo cargar trends.js o no define fetchYouTubeTrends().</li>';
     }
 
-    // Limpieza para SEO y generación de texto optimizado
     function limpiarTexto(texto) {
       return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w\s]/gi, '').toLowerCase();
     }
@@ -127,42 +131,17 @@
       }
 
       const año = new Date().getFullYear();
-      const tituloSEO = limpiarTexto(tituloInput);
       const descripcionSEO = descripcionInput.charAt(0).toUpperCase() + descripcionInput.slice(1);
 
       const tituloSugerido = `${tituloInput} | Ofertas y Novedades ${año} en México`;
-      const descripcionSugerida = `${descripcionSEO}.\n\nEncuentra las mejores promociones y productos exclusivos del ${tituloInput} para este ${año}. Perfecto para vendedoras y clientes interesados en cosméticos y calzado en México.\n\n¡Suscríbete y activa la campana para no perderte las novedades y descuentos!`;
-
-      const hashtags = [
-        "#VendeMasPorCatalogo", "#StanHome", "#Catalogo2025", "#CosmeticosMexico", "#CalzadoMexico",
-        "#Promociones", "#OfertasExclusivas", "#BellezaMexicana", "#ZapatosDeModa", "#Emprendedoras"
-      ];
-
-      const etiquetas = [
-        "Catálogo StanHome", "Campaña 18", "ofertas 2025", "cosméticos México", "calzado México",
-        "ventas por catálogo", "promociones exclusivas", "productos de belleza", "zapatos a la moda", "emprendedoras mexicanas"
-      ];
-
-      const horarios = ["19:00-20:00", "20:00-21:00", "21:00-22:00"];
+      const descripcionSugerida = `${descripcionSEO}.\n\nEncuentra las mejores promociones y productos exclusivos del ${tituloInput} para este ${año}. Perfecto para vendedoras y clientes interesados en cosméticos y calzado en México.\n\n¡Suscríbete y activa la campana!`;
 
       const resultado = `
 📢 TÍTULO SUGERIDO:
 ${tituloSugerido}
 
-📝 DESCRIPCIÓN SUGERIDA:
+📝 DESCRIPCIÓN:
 ${descripcionSugerida}
-
-🔥 HASHTAGS:
-${hashtags.join(" ")}
-
-🏷️ ETIQUETAS (YouTube Studio):
-${etiquetas.join(", ")}
-
-⏰ MEJORES HORARIOS DE PUBLICACIÓN (MX):
-${horarios.join(", ")}
-
-💡 ALTERNATIVA DE TÍTULO:
-${tituloInput} - Lo Más Nuevo del ${año}
       `;
 
       document.getElementById("resultado").textContent = resultado;
