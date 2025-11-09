@@ -13,6 +13,8 @@
       flex-direction: column;
       align-items: center;
       padding: 20px;
+      min-height: 100vh;
+      margin: 0;
     }
     h1 {
       color: #ff9800;
@@ -27,12 +29,18 @@
       border: none;
       outline: none;
       font-size: 16px;
+      box-sizing: border-box;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
     }
     button {
       background: linear-gradient(45deg, #ff9800, #2196f3);
       color: white;
       cursor: pointer;
       transition: 0.3s;
+      font-weight: bold;
     }
     button:hover {
       transform: scale(1.05);
@@ -46,6 +54,7 @@
       max-width: 500px;
       font-size: 15px;
       white-space: pre-wrap;
+      min-height: 150px;
     }
     ul {
       margin-top: 20px;
@@ -54,6 +63,7 @@
       border-radius: 8px;
       width: 100%;
       max-width: 500px;
+      list-style-type: none;
     }
     li {
       margin: 5px 0;
@@ -87,24 +97,24 @@
 
       const año = new Date().getFullYear();
 
-      // 🔍 Hashtags especializados en tu nicho
+      // Hashtags muy específicos de catálogo de cosméticos y calzado
       const hashtags = [
-        "#CatalogosDigitales", "#VentasPorCatalogo", "#CosmeticosMexico",
-        "#Calzado2025", "#EmprendedorasLatinas", "#BellezaYEstilo",
-        "#OfertasCatalogo", "#ProductosNuevos", "#Tendencias2025"
+        "#CatalogoCosmeticos", "#CatalogoCalzado", "#CosmeticosMexico",
+        "#CalzadoMexico", "#Cosmeticos2025", "#Calzado2025", "#BellezaMexico",
+        "#MaquillajeMexico", "#ZapatosMexico", "#CatálogoDigital", "#VentasPorCatalogo",
+        "#EmprendedorasMexicanas", "#OfertasCalzado", "#OfertasCosmeticos",
+        "#NovedadesBelleza", "#TendenciasCalzado", "#TendenciasCosmeticos"
       ];
 
-      // 🏷️ Etiquetas SEO optimizadas
+      // Etiquetas SEO optimizadas afines al nicho
       const etiquetas = [
-        "catálogos digitales", "ventas por catálogo", "cosméticos", "calzado",
-        "emprendedoras México", "ofertas 2025", "productos de belleza",
-        "moda y estilo", "promociones catálogo"
+        "catálogos de cosméticos", "catálogos de calzado", "ventas por catálogo",
+        "cosméticos México", "calzado México", "ofertas catálogo 2025",
+        "promociones cosmeticos", "zapatos México", "novedades catálogo",
+        "productos de belleza", "moda y estilo México", "emprendedoras latinas"
       ];
 
-      // 🕒 Mejores horarios basados en tráfico en MX
-      const horarios = [
-        "12:00-13:00", "18:00-19:00", "21:00-22:00"
-      ];
+      const horarios = ["12:00-13:00", "18:00-19:00", "21:00-22:00"];
 
       const resultado = `
 📢 TÍTULO SUGERIDO:
@@ -113,7 +123,7 @@ ${titulo.toLowerCase()} ${año} | Ofertas y Novedades
 📝 DESCRIPCIÓN SUGERIDA:
 ${descripcion}
 
-Descubre las mejores ofertas y lanzamientos del catálogo ${titulo.toLowerCase()} ${año}. Ideal para emprendedoras, vendedoras y amantes de los cosméticos y calzado en MX. Suscríbete para más catálogos y novedades.
+Descubre las mejores ofertas y lanzamientos del catálogo ${titulo.toLowerCase()} ${año}. Ideal para emprendedoras, vendedoras y amantes de los cosméticos y calzado en México. Suscríbete para más catálogos y novedades.
 
 🔥 HASHTAGS:
 ${hashtags.join(" ")}
