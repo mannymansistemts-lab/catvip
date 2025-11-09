@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Generador SEO YouTube Mejorado</title>
 
-  <!-- DESACTIVAR CACHÉ -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Cache-Control" content="no-store" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
@@ -43,7 +42,7 @@
       min-height: 100px;
     }
     button {
-      background: linear-gradient(45deg, #ff9800, #2196f3);
+      background: linear-gradient(45deg, #ff9800, #f321c2);
       color: white;
       cursor: pointer;
       font-weight: 700;
@@ -83,8 +82,8 @@
 <body>
   <h1>🎯 Generador SEO YouTube Mejorado</h1>
 
-  <input id="titulo" placeholder="Ejemplo: Catálogo StanHome Campaña 18 2025 México" />
-  <textarea id="descripcion" placeholder="Describe brevemente el contenido del catálogo"></textarea>
+  <input id="titulo" placeholder="Ejemplo: Catálogo CyZone Campaña 3 2025 México" />
+  <textarea id="descripcion" placeholder="Describe brevemente el catálogo..."></textarea>
   <button onclick="generarSEO()">Generar SEO Optimizado</button>
 
   <div id="resultado"></div>
@@ -92,8 +91,8 @@
   <h2>Tendencias Actuales en YouTube México</h2>
   <ul id="tendencias"><li>Cargando...</li></ul>
 
-  <!-- AQUÍ SE CONSERVA TU API, SOLO SIN CACHE -->
-  <script src="trends.js?v=1000"></script>
+  <!-- TU API RESTAURADA, SIN CACHE -->
+  <script src="trends.js?nocache="></script>
 
   <script>
     function mostrarTendencias(tendencias) {
@@ -112,36 +111,48 @@
       });
     }
 
-    if (typeof fetchYouTubeTrends === "function") {
-      fetchYouTubeTrends(mostrarTendencias);
-    } else {
-      document.getElementById('tendencias').innerHTML = '<li>Error: No se pudo cargar trends.js o no define fetchYouTubeTrends().</li>';
-    }
-
-    function limpiarTexto(texto) {
-      return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w\s]/gi, '').toLowerCase();
-    }
+    window.onload = () => {
+      if (typeof fetchYouTubeTrends === "function") {
+        fetchYouTubeTrends(mostrarTendencias);
+      } else {
+        document.getElementById('tendencias').innerHTML = '<li>Error cargando la API.</li>';
+      }
+    };
 
     function generarSEO() {
-      const tituloInput = document.getElementById("titulo").value.trim();
-      const descripcionInput = document.getElementById("descripcion").value.trim();
-      if (!tituloInput || !descripcionInput) {
-        alert("Por favor, llena ambos campos antes de continuar.");
-        return;
-      }
+      const titulo = document.getElementById("titulo").value.trim();
+      const descripcion = document.getElementById("descripcion").value.trim();
+      if (!titulo || !descripcion) return alert("Llena los campos.");
 
       const año = new Date().getFullYear();
-      const descripcionSEO = descripcionInput.charAt(0).toUpperCase() + descripcionInput.slice(1);
 
-      const tituloSugerido = `${tituloInput} | Ofertas y Novedades ${año} en México`;
-      const descripcionSugerida = `${descripcionSEO}.\n\nEncuentra las mejores promociones y productos exclusivos del ${tituloInput} para este ${año}. Perfecto para vendedoras y clientes interesados en cosméticos y calzado en México.\n\n¡Suscríbete y activa la campana!`;
+      const hashtags = [
+        "#Catalogos2025", "#CatalogosDeBelleza", "#CatalogosCosmeticos", "#VentaPorCatalogo",
+        "#CalzadoPorCatalogo", "#CosmeticosMexico", "#CatalogosActualizados",
+        "#MaquillajeMexico", "#VendedorasIndependientes", "#CatalogosDigitales"
+      ];
+
+      const etiquetas = [
+        "catalogo cosmeticos", "catalogo maquillaje", "catalogo calzado",
+        "nuevos catalogos mexico", "catalogo por campaña", "vender por catalogo",
+        "brochure cosmeticos mexico", "catalogos actualizados 2025", "emprendedoras mexico"
+      ];
 
       const resultado = `
 📢 TÍTULO SUGERIDO:
-${tituloSugerido}
+${titulo} | Novedades y Promociones ${año}
 
 📝 DESCRIPCIÓN:
-${descripcionSugerida}
+${descripcion}.
+
+Encuentra ofertas, maquillaje, perfumes y calzado disponibles esta campaña en México.
+Ideal para ventas y revendedoras. ¡Comparte, descarga y vende más!
+
+🔥 HASHTAGS:
+${hashtags.join(" ")}
+
+🏷️ ETIQUETAS (PÉGALAS EN YOUTUBE STUDIO):
+${etiquetas.join(", ")}
       `;
 
       document.getElementById("resultado").textContent = resultado;
