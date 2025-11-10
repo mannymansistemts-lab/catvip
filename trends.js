@@ -1,5 +1,5 @@
 // trends.js - versión lista para catálogos, cosméticos y calzado
-const API_KEY = 'AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw';
+const API_KEY = 'AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw'; // Reemplaza con tu clave API activa y sin restricciones locales
 const YT_BASE = 'https://www.googleapis.com/youtube/v3';
 
 const MAX_SEARCH = 12;
@@ -21,16 +21,25 @@ function setStatus(msg){const s=$('status'); if(s)s.textContent='Estado: '+msg;}
 function showError(msg){const e=$('err'); if(e){e.style.display='block'; e.textContent=msg;} console.error(msg);}
 function clearError(){const e=$('err'); if(e){e.style.display='none'; e.textContent='';}}
 
-async function fetchJson(url){const r=await fetch(url); if(!r.ok) throw new Error(`HTTP ${r.status} ${r.statusText}`); return r.json();}
+async function fetchJson(url){
+  try {
+    const r=await fetch(url);
+    if(!r.ok) throw new Error(`HTTP ${r.status} ${r.statusText}`);
+    return r.json();
+  } catch(e){
+    showError(`Error en fetch: ${e.message}`);
+    throw e;
+  }
+}
 
-async function searchVideos(query,country='MX',maxResults=MAX_SEARCH){
+async function searchVideos(query, country='MX', maxResults=MAX_SEARCH){
   const q=encodeURIComponent(query);
   const url=`${YT_BASE}/search?part=snippet&type=video&maxResults=${maxResults}&q=${q}&relevanceLanguage=es&regionCode=${country}&key=${API_KEY}`;
   return fetchJson(url);
 }
 
 async function getVideosDetails(idsCsv){
-  if(!idsCsv)return{items:[]};
+  if(!idsCsv) return {items:[]};
   const url=`${YT_BASE}/videos?part=snippet,statistics&id=${idsCsv}&key=${API_KEY}`;
   return fetchJson(url);
 }
@@ -169,7 +178,7 @@ function initUI(){
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
-  if(!API_KEY||API_KEY==='YOUR_API_KEY_HERE'){showError('API key no configurada.');}
+  if(!API_KEY||API_KEY==='TU_API_KEY_AQUI'){showError('API key no configurada.');}
   else{clearError(); runGenerator({brand:'',campaign:'',summary:'',country:'MX'}).catch(console.warn);}
   initUI();
 });
