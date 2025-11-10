@@ -1,7 +1,51 @@
-const API_KEY = "AIzaSyDlYWhDkEPsAIjedRk5Hnxs0bfAA7950EI"; // Coloca tu API key activa
+const API_KEY = "AIzaSyDlYWhDkEPsAIjedRk5Hnxs0bfAA7950EI"; // Tu API key activa
 const YT_BASE = "https://www.googleapis.com/youtube/v3";
 const lista = document.getElementById("tendencias");
 
+// Palabras clave de tu nicho
+const NICHO_KEYWORDS = [
+  "catálogo", "cosméticos", "calzado", "ventas", 
+  "ofertas", "productos", "tendencias", "moda", "emprendedoras"
+];
+
+// Función para generar hashtags virales (hasta 5)
+function generarHashtags(titulo) {
+  // Limpiar el título
+  let words = titulo.toLowerCase().replace(/[^a-z0-9\s]/gi, "").split(" ");
+  words = words.filter(w => w.length>2 && NICHO_KEYWORDS.includes(w) || NICHO_KEYWORDS.some(k => w.includes(k)));
+  
+  // Combinar con palabras clave del nicho
+  const hashtags = [];
+  for (let w of words) {
+    if (!hashtags.includes("#"+w)) hashtags.push("#"+w);
+    if (hashtags.length >=5) break;
+  }
+  
+  // Si quedaron menos de 5, rellenar con palabras del nicho
+  for (let k of NICHO_KEYWORDS) {
+    if (hashtags.length>=5) break;
+    if (!hashtags.includes("#"+k)) hashtags.push("#"+k);
+  }
+  return hashtags;
+}
+
+// Función para generar etiquetas SEO long-tail
+function generarEtiquetas(titulo, canal) {
+  const etiquetas = [
+    titulo.toLowerCase(),
+    `${titulo.toLowerCase()} 2025`,
+    `${titulo.toLowerCase()} catálogo`,
+    canal.toLowerCase(),
+    "tendencias youtube",
+    "videos populares",
+    "ventas por catálogo",
+    "productos de belleza",
+    "calzado y moda"
+  ];
+  return etiquetas.join(", ");
+}
+
+// Obtener tendencias
 async function obtenerTendencias(region="MX") {
   lista.innerHTML = "<li>Cargando tendencias...</li>";
   try {
@@ -21,23 +65,8 @@ async function obtenerTendencias(region="MX") {
       const canal = v.snippet.channelTitle;
       const id = v.id;
 
-      // Generar hashtags SEO automáticamente a partir del título
-      const hashtagsSEO = titulo
-        .toLowerCase()
-        .replace(/[^a-z0-9 ]/gi, "")
-        .split(" ")
-        .filter(w => w.length>2)
-        .map(w => "#" + w)
-        .join(" ");
-
-      // Generar etiquetas SEO automáticamente
-      const etiquetasSEO = [
-        titulo.toLowerCase(),
-        titulo.toLowerCase() + " youtube",
-        canal.toLowerCase(),
-        "tendencias youtube",
-        "videos populares"
-      ].join(", ");
+      const hashtagsSEO = generarHashtags(titulo).join(" ");
+      const etiquetasSEO = generarEtiquetas(titulo, canal);
 
       const li = document.createElement("li");
       li.innerHTML = `
@@ -60,29 +89,15 @@ document.addEventListener("DOMContentLoaded", () => {
   sel.addEventListener("change", () => obtenerTendencias(sel.value));
 });
 
-// Función SEO para el formulario manual
+// Función SEO para formulario manual
 function generarSEO() {
   const titulo = document.getElementById("titulo").value.trim();
   const descripcion = document.getElementById("descripcion").value.trim();
   if(!titulo || !descripcion) return alert("Por favor llena ambos campos");
 
   const año = new Date().getFullYear();
-
-  // Hashtags SEO del título
-  const hashtags = titulo
-    .toLowerCase()
-    .replace(/[^a-z0-9 ]/gi,"")
-    .split(" ")
-    .filter(w => w.length>2)
-    .map(w => "#" + w);
-
-  // Etiquetas SEO largas
-  const etiquetas = [
-    titulo.toLowerCase(),
-    `${titulo.toLowerCase()} ${año}`,
-    "videos populares youtube",
-    "tendencias youtube 2025"
-  ];
+  const hashtags = generarHashtags(titulo);
+  const etiquetas = generarEtiquetas(titulo, "Tu Canal");
 
   document.getElementById("resultado").textContent = `
 📢 TÍTULO SUGERIDO:
@@ -95,6 +110,6 @@ ${descripcion}
 ${hashtags.join(" ")}
 
 🏷️ ETIQUETAS SEO:
-${etiquetas.join(", ")}
+${etiquetas}
   `;
 }
