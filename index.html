@@ -7,7 +7,7 @@
 <style>
 body { background:#111; color:#fff; font-family: Arial; display:flex; flex-direction:column; align-items:center; padding:20px; }
 h1 { color:#ff9800; }
-input, textarea, button, select { width:100%; max-width:500px; margin-bottom:10px; padding:10px; border-radius:6px; border:none; font-size:16px; }
+input, textarea, button { width:100%; max-width:500px; margin-bottom:10px; padding:10px; border-radius:6px; border:none; font-size:16px; }
 button { background: linear-gradient(45deg,#ff9800,#2196f3); color:white; cursor:pointer; transition:0.3s; }
 button:hover { transform:scale(1.05); }
 #resultado { background:#222; padding:15px; border-radius:8px; margin-top:15px; width:100%; max-width:500px; white-space:pre-wrap; }
@@ -21,24 +21,14 @@ a:hover { text-decoration:underline; }
 
 <h1>🎯 Generador SEO Real YouTube</h1>
 
-<input id="titulo" placeholder="Título de tu contenido">
-<textarea id="descripcion" placeholder="Descripción breve"></textarea>
-<button onclick="generarSEO()">Generar SEO Real</button>
+<input id="inputQuery" placeholder="Escribe término de búsqueda (ej. Catálogo Yanbal 2025)">
+<button id="btnSearch">Generar SEO Real</button>
 
 <div id="resultado"></div>
 
-<h2>🔥 Tendencias YouTube México</h2>
-<label for="pais">Selecciona país:</label>
-<select id="pais">
-  <option value="MX" selected>México</option>
-  <option value="CO">Colombia</option>
-  <option value="PE">Perú</option>
-  <option value="AR">Argentina</option>
-  <option value="ES">España</option>
-</select>
-
+<h2>🔥 Resultados Reales de YouTube</h2>
 <ul id="tendencias"><li>Cargando...</li></ul>
 
-<script src="trends.js"></script>
+<script src="seo-api.js"></script>
 </body>
 </html>
