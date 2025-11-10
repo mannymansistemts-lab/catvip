@@ -1,4 +1,4 @@
-const API_KEY = "AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw"; // 👈 usa tu clave activa
+const API_KEY = "AIzaSyDlYWhDkEPsAIjedRk5Hnxs0bfAA7950EI"; // 👈 usa tu clave activa
 const YT_BASE = "https://www.googleapis.com/youtube/v3";
 
 async function obtenerTendencias(region = "MX") {
@@ -38,3 +38,4 @@ document.addEventListener("DOMContentLoaded", () => {
   obtenerTendencias(sel.value);
   sel.addEventListener("change", () => obtenerTendencias(sel.value));
 });
+
