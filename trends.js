@@ -1,145 +1,149 @@
-// trends-debug.js - muestra el error real y prueba fallback con proxy opcional
-const API_KEY = 'AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw'; // <- pon tu API key
-const YT_BASE = 'https://www.googleapis.com/youtube/v3';
-const TRY_PROXY_IF_FAILS = true;   // cambia a false si no quieres usar proxy
-const PROXY_PREFIX = 'https://api.codetabs.com/v1/proxy/?quest='; // proxy para pruebas
+// trends.js - versión corregida con proxy CORS
+const API_KEY = 'AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw'; // 🔑 pon tu clave YouTube Data API v3 real
+const YT_BASE = 'https://corsproxy.io/?https://www.googleapis.com/youtube/v3';
 
-// DOM helpers (asegúrate de que tu HTML tenga ids: status, err, resultado, tendencias, loader)
+// Helpers DOM
 const $ = id => document.getElementById(id);
-const setStatus = txt => { if($('status')) $('status').textContent = txt; };
-const showError = txt => { if($('err')){ $('err').style.display='block'; $('err').textContent = txt; } };
-const clearError = () => { if($('err')){ $('err').style.display='none'; $('err').textContent=''; } };
-const showDebug = txt => {
-  const out = $('resultado');
-  if(out) out.textContent = txt;
-  else console.log(txt);
+const setStatus = msg => { if ($('status')) $('status').textContent = '⏳ ' + msg; };
+const showError = msg => { const e=$('err'); if(e){ e.style.display='block'; e.textContent=msg; }};
+const clearError = ()=>{ const e=$('err'); if(e){ e.style.display='none'; e.textContent=''; }};
+const loader = $('loader');
+
+function normalize(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^\w\s#-]/g,'').trim();
+}
+function makeHash(text){
+  const t = text.replace(/^#/, '').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s]/gi,'').trim().replace(/\s+/g,'');
+  return t ? '#' + t : '';
+}
+
+async function fetchJson(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+async function searchVideos(query, region='MX') {
+  const url = `${YT_BASE}/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(query)}&regionCode=${region}&key=${API_KEY}`;
+  return fetchJson(url);
+}
+async function getVideoDetails(ids) {
+  if (!ids) return {items:[]};
+  const url = `${YT_BASE}/videos?part=snippet,statistics&id=${ids}&key=${API_KEY}`;
+  return fetchJson(url);
+}
+
+function extractTags(videos){
+  const tags=[], hours=[];
+  for(const v of videos){
+    const sn = v.snippet || {};
+    (sn.tags||[]).forEach(t=>tags.push(normalize(t)));
+    const desc = sn.description||'';
+    const found = desc.match(/#[A-Za-z0-9_áéíóúñ]+/g)||[];
+    found.forEach(h=>tags.push(normalize(h)));
+    if(sn.publishedAt){
+      const hmx = (new Date(sn.publishedAt).getUTCHours() -6 +24)%24;
+      hours.push(hmx);
+    }
+  }
+  return {tags,hours};
+}
+function freqSort(arr){
+  const map={}; arr.forEach(x=>{if(x) map[x]=(map[x]||0)+1});
+  return Object.keys(map).sort((a,b)=>map[b]-map[a]);
+}
+
+const brandExtra = {
+  arabela: ['#arabelamexico','#catalogosarabela','#perfumesarabela'],
+  fuller: ['#fuller2025','#catalogofuller','#fullerlatam'],
+  avon: ['#avonmexico','#catalogoavon','#avonofertas'],
+  yanbal: ['#yanbal2025','#catalogoyanbal','#yanbalmexico'],
+  natura: ['#naturamexico','#catalogonatura','#bellezanatura'],
+  cklass: ['#cklass2025','#modacklass','#catalogoscklass'],
+  price: ['#priceshoes','#calzadomoda','#catalogopriceshoes']
 };
 
-async function rawFetch(url, useProxy=false){
-  const final = useProxy ? (PROXY_PREFIX + encodeURIComponent(url)) : url;
-  // mostrar en consola la url real que llama (sin exponer la key en logs públicos)
-  console.log('Fetch ->', useProxy ? 'via proxy' : 'direct', final);
-  // No cache para evitar usar cache del navegador
-  return fetch(final, { cache: 'no-store' });
+function generarSugerencias({brand,campaign,summary,country,topTags,topHours}){
+  const y = new Date().getFullYear();
+  const brandLow = brand.toLowerCase();
+  const hashtags = ['#vendemasporcatalogo','#catalogosvirtualeslatam'];
+  (brandExtra[brandLow]||[]).forEach(h=>hashtags.push(h));
+  topTags.slice(0,5).forEach(t=>{
+    const h = makeHash(t);
+    if(!hashtags.includes(h) && h.length>2) hashtags.push(h);
+  });
+
+  const etiquetas = [brand,`${brand} ${y}`,`${brand} ${campaign}`].concat(topTags.slice(0,10));
+  const title1 = `${brand} ${campaign} ${y} | Ofertas y Novedades`;
+  const title2 = `${brand} ${campaign} — Catálogo ${y} (Lo más nuevo)`;
+  const desc = `${summary}\n\nDescubre las mejores ofertas y lanzamientos de ${brand} en su catálogo ${campaign} ${y}. Ideal para vendedoras, clientas y amantes de la belleza y moda en ${country}.`;
+  const hours = topHours.slice(0,3).map(h=>`${h}:00-${(h+1)%24}:00`);
+
+  return {title1,title2,desc,hashtags,etiquetas,hours};
 }
 
-async function fetchJsonWithDebug(url){
-  try {
-    const res = await rawFetch(url, false);
-    // si la respuesta NO es ok intentamos leer el body y lanzarlo
-    if (!res.ok) {
-      let text;
-      try { text = await res.text(); } catch(e){ text = `No body (${e.message})`; }
-      // tratar de parsear JSON si viene así
-      let parsed = text;
-      try { parsed = JSON.parse(text); } catch(_) {}
-      throw { status: res.status, statusText: res.statusText, body: parsed };
-    }
-    return await res.json();
-  } catch (err) {
-    // err puede ser Error o el objeto que lanzamos arriba
-    throw err;
-  }
+function mostrarResultado(s){
+  $('resultado').textContent = `
+📢 TÍTULO SUGERIDO:
+${s.title1}
+
+📝 DESCRIPCIÓN SUGERIDA:
+${s.desc}
+
+🔥 HASHTAGS:
+${s.hashtags.join(' ')}
+
+🏷️ ETIQUETAS (YouTube Studio):
+${s.etiquetas.join(', ')}
+
+⏰ MEJORES HORARIOS (MX):
+${s.hours.join(', ')}
+
+💡 Alternativa de título:
+${s.title2}
+  `.trim();
 }
 
-async function fetchJsonWithProxyFallback(url){
-  try {
-    return await fetchJsonWithDebug(url); // intento directo
-  } catch (errDirect) {
-    console.warn('Direct fetch failed:', errDirect);
-    // si está permitido, testear con proxy
-    if (TRY_PROXY_IF_FAILS) {
-      try {
-        const resProxy = await rawFetch(url, true);
-        if (!resProxy.ok) {
-          let t;
-          try { t = await resProxy.text(); } catch(e){ t = `No body (${e.message})`; }
-          let parsed = t;
-          try { parsed = JSON.parse(t); } catch(_) {}
-          throw { status: resProxy.status, statusText: resProxy.statusText, body: parsed, proxy: true };
-        }
-        return await resProxy.json();
-      } catch (errProxy) {
-        // devolver error combinado
-        throw { direct: errDirect, proxy: errProxy };
-      }
-    }
-    throw errDirect;
-  }
+function mostrarTendencias(list){
+  const ul=$('tendencias');
+  ul.innerHTML='';
+  if(!list.length){ ul.innerHTML='<li>No hay tendencias</li>'; return; }
+  list.forEach(t=>{
+    const li=document.createElement('li');
+    li.textContent=t;
+    ul.appendChild(li);
+  });
 }
 
-// función de búsqueda simple (como en tu original)
-async function searchVideos(query, region='MX'){
-  const url = `${YT_BASE}/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(query)}&regionCode=${region}&key=${API_KEY}`;
-  return await fetchJsonWithProxyFallback(url);
-}
-
-async function getVideoDetails(idsCsv){
-  if(!idsCsv) return { items: [] };
-  const url = `${YT_BASE}/videos?part=snippet,statistics&id=${idsCsv}&key=${API_KEY}`;
-  return await fetchJsonWithProxyFallback(url);
-}
-
-// Extraer y mostrar (simplificado)
-function extractTags(videos){
-  const tags = [];
-  for(const v of videos || []){
-    const sn = v.snippet || {};
-    (sn.tags || []).forEach(t=>tags.push(t));
-    const desc = sn.description || '';
-    const found = (desc.match(/#[A-Za-z0-9_áéíóúñ]+/g) || []);
-    found.forEach(h=>tags.push(h));
-  }
-  return tags;
-}
-
-async function runDebug(brand){
-  clearError();
-  setStatus('Probando conexión con YouTube API...');
-  if($('loader')) $('loader').style.display = 'block';
-  try {
-    const q = (brand || 'catalogo') + ' catálogo 2025';
-    const search = await searchVideos(q, 'MX');
-    setStatus('Search OK — obteniendo detalles...');
-    // obtener ids
-    const ids = (search.items||[]).map(it => (it.id && it.id.videoId) ? it.id.videoId : (it.id || '')).filter(Boolean).join(',');
+async function runGenerator({brand,summary}){
+  clearError(); setStatus('Buscando en YouTube...'); loader.style.display='block';
+  try{
+    const search = await searchVideos(`${brand} catálogo 2025`, 'MX');
+    const ids = (search.items||[]).map(i=>i.id.videoId).filter(Boolean).join(',');
     const details = await getVideoDetails(ids);
-    setStatus('Detalles OK — extrayendo tags...');
-    const tags = extractTags(details.items);
-    showDebug(`✅ Conexión correcta.\nResultados de search: ${ (search.items||[]).length } videos\nTags extraídas (primeras 30):\n${tags.slice(0,30).join(', ')}`);
-    // mostrar títulos de tendencias si hay
-    if($('tendencias')){
-      const ul = $('tendencias'); ul.innerHTML='';
-      (search.items||[]).forEach(it => {
-        const title = (it.snippet && it.snippet.title) ? it.snippet.title : JSON.stringify(it);
-        const li = document.createElement('li'); li.textContent = title; ul.appendChild(li);
-      });
-    }
-    setStatus('✅ Listo — conexión exitosa');
-    return { search, details };
-  } catch (err) {
-    console.error('ERROR detallado:', err);
-    // Formatear el mensaje de error para mostrar en UI
-    let msg = '❌ Error al conectar con la API.\n\n';
-    if (err && err.status) {
-      msg += `HTTP ${err.status} ${err.statusText || ''}\n`;
-      msg += `Body: ${JSON.stringify(err.body, null, 2)}\n`;
-      msg += `\nSi ves "dailyLimitExceeded" o "quotaExceeded" -> es problema de cuota.\nSi ves \"accessNotConfigured\" o \"API key not valid\" -> revisa Google Cloud.\nSi ves 403 con reason "dailyLimitExceeded" o "forbidden" -> revisa restricciones.\n`;
-    } else if (err && err.direct && err.proxy) {
-      msg += `Intento directo falló: ${JSON.stringify(err.direct, null, 2)}\nIntento proxy falló: ${JSON.stringify(err.proxy, null, 2)}\n`;
-    } else {
-      msg += (err && err.message) ? err.message : JSON.stringify(err);
-    }
-    showError(msg);
-    setStatus('❌ Error — revisa detalles en el cuadro rojo y la consola (F12)');
-    showDebug('Ver consola (F12) para más detalles.'); 
-    return null;
-  } finally {
-    if($('loader')) $('loader').style.display = 'none';
+    const {tags,hours}=extractTags(details.items);
+    const sortedTags=freqSort(tags);
+    const sortedHours=freqSort(hours);
+    const suger = generarSugerencias({ brand,campaign:'Campaña',summary,country:'MX', topTags:sortedTags,topHours:sortedHours });
+    mostrarResultado(suger);
+    mostrarTendencias((search.items||[]).map(v=>v.snippet.title));
+    setStatus('✅ Listo');
+  }catch(err){
+    showError('Error al conectar con la API. Usando valores locales.');
+    console.error(err);
+    const suger = generarSugerencias({ brand,campaign:'Campaña',summary,country:'MX',topTags:[],topHours:[19,20,21] });
+    mostrarResultado(suger);
+  }finally{
+    loader.style.display='none';
   }
 }
 
-// Exponer funciones globales para que tu HTML pueda llamarlo
-window.runTrendsDebug = runDebug;
-window.searchVideos = searchVideos;
-window.getVideoDetails = getVideoDetails;
+document.addEventListener('DOMContentLoaded',()=>{
+  $('generarBtn').addEventListener('click',()=>{
+    const brand=$('titulo').value.trim();
+    const desc=$('descripcion').value.trim();
+    if(!brand||!desc){ alert('Por favor llena los campos'); return; }
+    runGenerator({brand,summary:desc});
+  });
+});
