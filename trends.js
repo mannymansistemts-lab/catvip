@@ -1,5 +1,5 @@
 // trends.js - 2025 versión estable
-const API_KEY = 'TU_API_KEY_DE_YOUTUBE_AQUI'; // ← pon tu clave real
+const API_KEY = 'AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw'; // ← pon tu clave real
 const YT_BASE = 'https://www.googleapis.com/youtube/v3';
 
 // Helpers DOM
@@ -171,3 +171,4 @@ document.addEventListener('DOMContentLoaded',()=>{
     runGenerator({brand,summary:desc});
   });
 });
+
