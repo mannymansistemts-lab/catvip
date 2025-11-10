@@ -1,302 +1,173 @@
-// trends.js - completo y listo
-// REEMPLAZA: pon tu API key de YouTube aquí (o pon la variable desde Netlify functions)
-const API_KEY = 'AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw'; // <- reemplaza esto
+// trends.js - 2025 versión estable
+const API_KEY = 'TU_API_KEY_DE_YOUTUBE_AQUI'; // ← pon tu clave real
 const YT_BASE = 'https://www.googleapis.com/youtube/v3';
 
-// Config
-const MAX_SEARCH = 12;
-const MAX_VIDEO_DETAILS = 12;
-
-// Utilidades
+// Helpers DOM
 const $ = id => document.getElementById(id);
-const safeText = t => (t == null ? '' : String(t));
+const safe = t => (t ? String(t) : '');
+const setStatus = msg => { if ($('status')) $('status').textContent = '⏳ ' + msg; };
+const showError = msg => { const e=$('err'); if(e){ e.style.display='block'; e.textContent=msg; }};
+const clearError = ()=>{ const e=$('err'); if(e){ e.style.display='none'; e.textContent=''; }};
+const loader = $('loader');
 
-// Normalizar texto para hashtags/keys
-function normalizeToken(s) {
-  return s.toString()
-    .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/[^\w\s#-]/g, '')
-    .trim();
+// Normalizar texto
+function normalize(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^\w\s#-]/g,'').trim();
 }
-
-function makeHash(text) {
-  if (!text) return '';
+function makeHash(text){
   const t = text.replace(/^#/, '').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .replace(/[^a-z0-9\s]/gi,'').trim().replace(/\s+/g,'');
   return t ? '#' + t : '';
 }
 
-// DOM helpers
-function setStatus(msg) {
-  const s = $('status');
-  if (s) s.textContent = 'Estado: ' + msg;
-}
-function showError(msg) {
-  const e = $('err');
-  if (e) { e.style.display = 'block'; e.textContent = msg; }
-  console.error(msg);
-}
-function clearError() {
-  const e = $('err');
-  if (e) { e.style.display = 'none'; e.textContent = ''; }
-}
-
-// Fetch helpers
+// Buscar videos
 async function fetchJson(url) {
   const r = await fetch(url);
-  if (!r.ok) throw new Error(`HTTP ${r.status} ${r.statusText}`);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 }
 
-// 1) Buscar videos por query (brand + campaign)
-async function searchVideos(query, country='MX', maxResults=MAX_SEARCH) {
-  const q = encodeURIComponent(query);
-  const url = `${YT_BASE}/search?part=snippet&type=video&maxResults=${maxResults}&q=${q}&relevanceLanguage=es&regionCode=${country}&key=${API_KEY}`;
+async function searchVideos(query, region='MX') {
+  const url = `${YT_BASE}/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(query)}&regionCode=${region}&key=${API_KEY}`;
   return fetchJson(url);
 }
 
-// 2) Obtener detalles (snippet, statistics) de varios videoIds (coma-separados)
-async function getVideosDetails(idsCsv) {
-  if (!idsCsv) return { items: [] };
-  const url = `${YT_BASE}/videos?part=snippet,statistics&id=${idsCsv}&key=${API_KEY}`;
+async function getVideoDetails(ids) {
+  if (!ids) return {items:[]};
+  const url = `${YT_BASE}/videos?part=snippet,statistics&id=${ids}&key=${API_KEY}`;
   return fetchJson(url);
 }
 
-// 3) Extraer tags y hashtags desde snippets y descripciones
-function extractTagsAndHours(videoItems) {
-  const tags = [];
-  const publishedHours = [];
-  for (const v of videoItems || []) {
+// Extraer hashtags + hora
+function extractTags(videos){
+  const tags=[], hours=[];
+  for(const v of videos){
     const sn = v.snippet || {};
-    // snippet.tags
-    (sn.tags || []).forEach(t => tags.push(normalizeToken(t)));
-    // hashtags en description (#algo)
-    const desc = sn.description || '';
-    try {
-      const found = desc.match(/#[\p{L}\p{N}_]+/gu) || [];
-      found.forEach(h => tags.push(normalizeToken(h)));
-    } catch (e) {
-      // Si no soporta \p{}, fallback simple:
-      const found2 = desc.match(/#[A-Za-z0-9_]+/g) || [];
-      found2.forEach(h => tags.push(normalizeToken(h)));
-    }
-    // published hour UTC -> ajustar a MX (UTC-6 fijo para simplicidad)
-    if (sn.publishedAt) {
-      const date = new Date(sn.publishedAt);
-      const hourMX = (date.getUTCHours() - 6 + 24) % 24;
-      publishedHours.push(hourMX);
+    (sn.tags||[]).forEach(t=>tags.push(normalize(t)));
+    const desc = sn.description||'';
+    const found = desc.match(/#[A-Za-z0-9_áéíóúñ]+/g)||[];
+    found.forEach(h=>tags.push(normalize(h)));
+    if(sn.publishedAt){
+      const hmx = (new Date(sn.publishedAt).getUTCHours() -6 +24)%24;
+      hours.push(hmx);
     }
   }
-  return { tags, publishedHours };
+  return {tags,hours};
+}
+function freqSort(arr){
+  const map={}; arr.forEach(x=>{if(x) map[x]=(map[x]||0)+1});
+  return Object.keys(map).sort((a,b)=>map[b]-map[a]);
 }
 
-// 4) Contar frecuencia y retornar ordenado
-function freqSorted(arr) {
-  const map = {};
-  arr.forEach(x => { if (x) map[x] = (map[x] || 0) + 1; });
-  return Object.keys(map).sort((a,b)=> map[b]-map[a]);
-}
+// Hashtags base por marca
+const brandExtra = {
+  arabela: ['#arabelamexico','#catalogosarabela','#perfumesarabela'],
+  fuller: ['#fuller2025','#catalogofuller','#fullerlatam'],
+  avon: ['#avonmexico','#catalogoavon','#avonofertas'],
+  yanbal: ['#yanbal2025','#catalogoyanbal','#yanbalmexico'],
+  natura: ['#naturamexico','#catalogonatura','#bellezanatura'],
+  cklass: ['#cklass2025','#modacklass','#catalogoscklass'],
+  price: ['#priceshoes','#calzadomoda','#catalogopriceshoes']
+};
 
-// 5) Generar sugerencias: title, description, hashtags, tags, bestHours
-function generateSuggestions({brand, campaign, summary, country, topTokens, topHours}) {
-  const year = (new Date()).getFullYear();
-  const brandClean = brand || 'Marca';
-  const campaignClean = campaign || '';
-  // Title suggestions (dos variantes)
-  const title1 = `${brandClean} ${campaignClean} ${year} | Ofertas y Novedades`;
-  const title2 = `${brandClean} ${campaignClean} — Catálogo ${year} (Lo más nuevo)`;
-  // Description template
-  const desc = `${summary ? summary + '\n\n' : ''}Descubre las mejores ofertas y lanzamientos de ${brandClean} en este catálogo ${campaignClean} ${year}. Ideal para vendedoras y clientes en ${country || 'LATAM'}.`;
-  // Hashtags: usar topTokens (limpiar y convertir a #)
-  const resultHashes = [];
-  const fixedA = '#vendemasporcatalogo';
-  const fixedB = '#catalogosvirtualeslatam';
-  resultHashes.push(fixedA);
-  const maxPer = 7;
-  for (const t of topTokens) {
-    if (resultHashes.length >= maxPer) break;
-    const h = t.startsWith('#') ? t : makeHash(t);
-    if (!resultHashes.includes(h) && h !== fixedA && h.length>1) resultHashes.push(h);
-  }
-  // asegurar básicos
-  const basics = [makeHash(`catalogo ${brandClean}`), makeHash(`${brandClean} ${year}`), makeHash(`${brandClean} mexico`)];
-  for (const b of basics) {
-    if (resultHashes.length < maxPer && b && !resultHashes.includes(b)) resultHashes.push(b);
-  }
+// Generar sugerencias SEO
+function generarSugerencias({brand,campaign,summary,country,topTags,topHours}){
+  const y = new Date().getFullYear();
+  const brandLow = brand.toLowerCase();
+  const hashtags = ['#vendemasporcatalogo','#catalogosvirtualeslatam'];
 
-  // Studio tags (etiquetas) - mezcla de topTokens y palabras clave
-  const studioTags = [];
-  studioTags.push(`${brandClean} ${campaignClean}`.trim());
-  studioTags.push(`${brandClean} ${year}`.trim());
-  topTokens.slice(0, 12).forEach(t => {
-    const tClean = t.replace(/^#/, '');
-    if (tClean && !studioTags.includes(tClean)) studioTags.push(tClean);
+  // Combinar tendencias y extras de marca
+  (brandExtra[brandLow]||[]).forEach(h=>hashtags.push(h));
+  topTags.slice(0,5).forEach(t=>{
+    const h = makeHash(t);
+    if(!hashtags.includes(h) && h.length>2) hashtags.push(h);
   });
 
-  // best hours (tomar top 3)
-  const bestHours = (topHours || []).slice(0,3).map(h => Number(h));
+  const etiquetas = [brand,`${brand} ${y}`,`${brand} ${campaign}`].concat(topTags.slice(0,10));
 
-  return {
-    titles: [title1, title2],
-    description: desc,
-    hashtags: resultHashes,
-    tags: studioTags,
-    bestHours
-  };
+  const title1 = `${brand} ${campaign} ${y} | Ofertas y Novedades`;
+  const title2 = `${brand} ${campaign} — Catálogo ${y} (Lo más nuevo)`;
+
+  const desc = `${summary}\n\nDescubre las mejores ofertas y lanzamientos de ${brand} en su catálogo ${campaign} ${y}. Ideal para vendedoras, clientas y amantes de la belleza y moda en ${country}.`;
+
+  const hours = topHours.slice(0,3).map(h=>`${h}:00-${(h+1)%24}:00`);
+
+  return {title1,title2,desc,hashtags,etiquetas,hours};
 }
 
-// 6) Renderizar en DOM
-function renderTendencias(list) {
-  const ul = $('tendencias');
-  if (!ul) return;
-  ul.innerHTML = '';
-  if (!list || !list.length) {
-    ul.innerHTML = '<li>No hay tendencias</li>';
-    return;
-  }
-  for (const t of list.slice(0,12)) {
-    const li = document.createElement('li');
-    li.textContent = safeText(t);
-    ul.appendChild(li);
-  }
-}
-
-function renderResultado(sugg) {
-  const out = $('resultado');
-  if (!out) return;
-  const title = sugg.titles && sugg.titles[0] ? sugg.titles[0] : '';
-  const title2 = sugg.titles && sugg.titles[1] ? sugg.titles[1] : '';
-  const desc = sugg.description || '';
-  const hashtags = (sugg.hashtags || []).join(' ');
-  const tags = (sugg.tags || []).join(', ');
-  const hours = (sugg.bestHours || []).map(h => `${h}:00-${(h+1)%24}:00`).join(', ');
-
-  out.textContent = `
-📢 TITULO SUGERIDO:
-${title}
+// Render resultados
+function mostrarResultado(s){
+  $('resultado').textContent = `
+📢 TÍTULO SUGERIDO:
+${s.title1}
 
 📝 DESCRIPCIÓN SUGERIDA:
-${desc}
+${s.desc}
 
 🔥 HASHTAGS:
-${hashtags}
+${s.hashtags.join(' ')}
 
 🏷️ ETIQUETAS (YouTube Studio):
-${tags}
+${s.etiquetas.join(', ')}
 
 ⏰ MEJORES HORARIOS (MX):
-${hours}
+${s.hours.join(', ')}
 
 💡 Alternativa de título:
-${title2}
+${s.title2}
   `.trim();
 }
 
-// 7) Función principal: unir todo
-async function runGenerator({brand, campaign, summary, country='MX'}) {
-  clearError();
-  setStatus('buscando en YouTube...');
-  try {
-    const q = `${brand} ${campaign}`.trim();
-    let searchJson = null;
-    try {
-      searchJson = await searchVideos(q || 'most popular', country, MAX_SEARCH);
-    } catch (e) {
-      console.warn('searchVideos falló:', e);
-      searchJson = null;
-    }
+// Mostrar tendencias
+function mostrarTendencias(list){
+  const ul=$('tendencias');
+  ul.innerHTML='';
+  if(!list.length){ ul.innerHTML='<li>No hay tendencias</li>'; return; }
+  list.forEach(t=>{
+    const li=document.createElement('li');
+    li.textContent=t;
+    ul.appendChild(li);
+  });
+}
 
-    let items = (searchJson && searchJson.items) ? searchJson.items : [];
+// Ejecutar generador
+async function runGenerator({brand,summary}){
+  clearError(); setStatus('Buscando en YouTube...'); loader.style.display='block';
+  try{
+    const search = await searchVideos(`${brand} catálogo 2025`, 'MX');
+    const ids = (search.items||[]).map(i=>i.id.videoId).filter(Boolean).join(',');
+    const details = await getVideoDetails(ids);
+    const {tags,hours}=extractTags(details.items);
+    const sortedTags=freqSort(tags);
+    const sortedHours=freqSort(hours);
 
-    // si no hay items, pedir mostPopular
-    if (!items.length) {
-      setStatus('sin resultados, pidiendo más populares...');
-      const popularUrl = `${YT_BASE}/videos?part=snippet&chart=mostPopular&regionCode=${country}&maxResults=${Math.min(MAX_VIDEO_DETAILS,12)}&key=${API_KEY}`;
-      const pop = await fetchJson(popularUrl);
-      items = pop.items || [];
-    }
-
-    // mostrar títulos en lista de tendencias
-    const trendTitles = (items || []).map(it => (it.snippet && it.snippet.title) ? it.snippet.title : (it.snippet ? it.snippet.description : 'Video'));
-    renderTendencias(trendTitles);
-
-    // obtener ids para pedir detalles (si search returned ids in item.id.videoId)
-    const ids = (items.map(i => (i.id && i.id.videoId) ? i.id.videoId : i.id).filter(Boolean)).join(',');
-    // si items desde videos endpoint ya tienen id.videoId o id
-    const details = await getVideosDetails(ids || (items.map(i => i.id).filter(Boolean).join(',')));
-    const videoItems = details.items || [];
-
-    // extraer tags y horas
-    const { tags: rawTags, publishedHours } = extractTagsAndHours(videoItems);
-
-    // ordenar tokens por frecuencia
-    const sortedTokens = freqSorted(rawTags);
-
-    // generar sugerencias
-    const suggestions = generateSuggestions({
-      brand, campaign, summary, country,
-      topTokens: sortedTokens,
-      topHours: freqSorted(publishedHours)
+    const suger = generarSugerencias({
+      brand,campaign:'Campaña',summary,country:'MX',
+      topTags:sortedTags,topHours:sortedHours
     });
 
-    // render resultado
-    renderResultado(suggestions);
-    setStatus('listo');
-    return suggestions;
-  } catch (err) {
-    setStatus('error');
-    showError('Error al generar sugerencias: ' + (err.message || err));
-    // fallback simple
-    const fallback = generateSuggestions({
-      brand,
-      campaign,
-      summary,
-      country,
-      topTokens: [],
-      topHours: [19,20]
+    mostrarResultado(suger);
+    mostrarTendencias((search.items||[]).map(v=>v.snippet.title));
+    setStatus('✅ Listo');
+  }catch(err){
+    showError('Error al conectar con la API. Usando valores locales.');
+    const suger = generarSugerencias({
+      brand,campaign:'Campaña',summary,country:'MX',
+      topTags:[],topHours:[19,20,21]
     });
-    renderResultado(fallback);
-    return fallback;
+    mostrarResultado(suger);
+  }finally{
+    loader.style.display='none';
   }
 }
 
-// 8) Integración con UI (asume index.html con ids: titulo, descripcion, resultado, tendencias)
-function initUI() {
-  const btn = $('generarBtn') || null;
-  // If your index.html uses inline onclick, this will still work:
-  // We'll attach listener to existing button if available (#generarBtn) otherwise fallback to window function.
-  if (btn) {
-    btn.addEventListener('click', async () => {
-      const brand = $('titulo') ? $('titulo').value.trim() : '';
-      const summary = $('descripcion') ? $('descripcion').value.trim() : '';
-      const campaign = ''; // si quieres, crea input para campaign
-      await runGenerator({ brand, campaign, summary, country: 'MX' });
-    });
-  } else {
-    // If button uses inline onclick "generarSEO()", provide that global function
-    window.generarSEO = async function() {
-      const brand = $('titulo') ? $('titulo').value.trim() : '';
-      const summary = $('descripcion') ? $('descripcion').value.trim() : '';
-      await runGenerator({ brand, campaign: '', summary, country: 'MX' });
-    };
-  }
-}
-
-// Auto init
-document.addEventListener('DOMContentLoaded', () => {
-  if (API_KEY === 'YOUR_API_KEY_HERE' || !API_KEY) {
-    showError('API key no configurada en trends.js. Reemplaza API_KEY en el archivo.');
-    // still init UI so fallback works
-  } else {
-    clearError();
-  }
-  initUI();
-  // también cargar tendencias iniciales (top populares) si clave está presente
-  if (API_KEY && API_KEY !== 'YOUR_API_KEY_HERE') {
-    runGenerator({ brand: '', campaign: '', summary: '', country: 'MX' }).catch(e=>console.warn(e));
-  } else {
-    // mostrar mensaje en lista
-    renderTendencias(['Configura tu API key en trends.js para ver tendencias reales.']);
-  }
+// Evento UI
+document.addEventListener('DOMContentLoaded',()=>{
+  $('generarBtn').addEventListener('click',()=>{
+    const brand=$('titulo').value.trim();
+    const desc=$('descripcion').value.trim();
+    if(!brand||!desc){ alert('Por favor llena los campos'); return; }
+    runGenerator({brand,summary:desc});
+  });
 });
