@@ -1,152 +1,136 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Generador SEO YouTube 2025</title>
-  <style>
-    body {
-      background: #111;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-    }
-    h1 {
-      color: #ff9800;
-      margin-bottom: 10px;
-    }
-    input, textarea, button {
-      width: 100%;
-      max-width: 500px;
-      margin-bottom: 10px;
-      padding: 10px;
-      border-radius: 6px;
-      border: none;
-      outline: none;
-      font-size: 16px;
-    }
-    button {
-      background: linear-gradient(45deg, #ff9800, #2196f3);
-      color: white;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover {
-      transform: scale(1.05);
-    }
-    #resultado {
-      background: #222;
-      padding: 15px;
-      border-radius: 8px;
-      margin-top: 15px;
-      width: 100%;
-      max-width: 500px;
-      font-size: 15px;
-      white-space: pre-wrap;
-    }
-    ul {
-      margin-top: 20px;
-      background: #222;
-      padding: 15px;
-      border-radius: 8px;
-      width: 100%;
-      max-width: 500px;
-    }
-    li {
-      margin: 5px 0;
-      color: #ff9800;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador SEO YouTube Nicho Catálogos</title>
+<style>
+  body {
+    font-family: "Segoe UI", sans-serif;
+    background: linear-gradient(180deg, #000, #111);
+    color: #fff;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+  .contenedor {
+    width: 95%;
+    max-width: 480px;
+    background: #1a1a1a;
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 25px;
+    box-shadow: 0 0 20px rgba(255,140,0,0.3);
+  }
+  h1 {
+    text-align: center;
+    color: #ffa500;
+    font-size: 1.4em;
+    margin-bottom: 15px;
+  }
+  label {
+    font-weight: bold;
+    color: #f8f8f8;
+    display: block;
+    margin-top: 10px;
+  }
+  input, textarea {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    margin-top: 6px;
+    background: #222;
+    color: #fff;
+    resize: none;
+    font-size: 1em;
+  }
+  button {
+    width: 100%;
+    background: #ff7b00;
+    border: none;
+    color: #fff;
+    padding: 12px;
+    margin-top: 15px;
+    font-size: 1.1em;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  button:hover {
+    background: #ff9a00;
+  }
+  #status {
+    text-align: center;
+    margin-top: 10px;
+    color: #00c3ff;
+  }
+  #err {
+    display: none;
+    color: #ff5555;
+    background: rgba(255, 0, 0, 0.1);
+    padding: 8px;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 10px;
+  }
+  #resultado {
+    background: #111;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 15px;
+    font-size: 0.95em;
+    white-space: pre-wrap;
+  }
+  ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+    background: #0f0f0f;
+    border-radius: 10px;
+  }
+  li {
+    padding: 6px 10px;
+    border-bottom: 1px solid #222;
+    font-size: 0.9em;
+    color: #ccc;
+  }
+  li:last-child {
+    border-bottom: none;
+  }
+  .subtitulo {
+    color: #00bfff;
+    margin-top: 20px;
+    text-align: center;
+    font-size: 1.1em;
+  }
+</style>
 </head>
 <body>
+<div class="contenedor">
   <h1>🎯 Generador SEO YouTube 2025</h1>
 
-  <input id="titulo" placeholder="Escribe el título del catálogo (ej. Catálogo Yanbal 2025)" />
-  <textarea id="descripcion" placeholder="Describe brevemente el contenido del catálogo"></textarea>
-  <button onclick="generarSEO()">Generar SEO Optimizado</button>
+  <label for="titulo">Marca o catálogo:</label>
+  <input type="text" id="titulo" placeholder="Ejemplo: Jafra, Avon, Arabela">
 
-  <div id="resultado"></div>
+  <label for="descripcion">Resumen breve (opcional):</label>
+  <textarea id="descripcion" rows="3" placeholder="Escribe un breve resumen o descripción del catálogo..."></textarea>
 
-  <h2>Tendencias Actuales en YouTube México</h2>
+  <button id="generarBtn">Generar contenido SEO</button>
+
+  <p id="status">Esperando acción...</p>
+  <div id="err"></div>
+
+  <h3 class="subtitulo">📈 Tendencias del nicho</h3>
   <ul id="tendencias"><li>Cargando...</li></ul>
 
-  <!-- Conexión a tu API -->
-  <script src="trends.js"></script>
+  <h3 class="subtitulo">🧠 Resultado sugerido</h3>
+  <div id="resultado">Aquí aparecerá tu SEO generado con IA</div>
+</div>
 
-  <script>
-    // Variable global para guardar hashtags virales de tu API
-    let hashtagsVirales = [];
-
-    // ✅ Esta función será llamada desde tu archivo trends.js cuando carguen las tendencias
-    function mostrarTendencias(tendencias) {
-      const lista = document.getElementById("tendencias");
-      lista.innerHTML = "";
-
-      hashtagsVirales = tendencias.map(tag => "#" + tag.replace(/\s+/g, ""));
-
-      tendencias.forEach(tag => {
-        const li = document.createElement("li");
-        li.textContent = "#" + tag;
-        lista.appendChild(li);
-      });
-    }
-
-    function generarSEO() {
-      const titulo = document.getElementById("titulo").value.trim();
-      const descripcion = document.getElementById("descripcion").value.trim();
-
-      if (!titulo || !descripcion) {
-        alert("Por favor llena ambos campos");
-        return;
-      }
-
-      const año = new Date().getFullYear();
-
-      // 🔍 Hashtags de nicho
-      const hashtagsNicho = [
-        "#CatalogosDigitales", "#VentasPorCatalogo", "#CosmeticosMexico",
-        "#Calzado2025", "#EmprendedorasLatinas", "#BellezaYEstilo",
-        "#OfertasCatalogo", "#ProductosNuevos", "#Tendencias2025"
-      ];
-
-      // 🧩 Mezclamos hashtags virales + nicho (sin repetir)
-      const hashtagsCombinados = [...new Set([...hashtagsNicho, ...hashtagsVirales])].slice(0, 12);
-
-      const etiquetas = [
-        "catálogos digitales", "ventas por catálogo", "cosméticos", "calzado",
-        "emprendedoras México", "ofertas 2025", "productos de belleza",
-        "moda y estilo", "promociones catálogo"
-      ];
-
-      const horarios = ["12:00-13:00", "18:00-19:00", "21:00-22:00"];
-
-      const resultado = `
-📢 TÍTULO SUGERIDO:
-${titulo.toLowerCase()} ${año} | Ofertas y Novedades
-
-📝 DESCRIPCIÓN SUGERIDA:
-${descripcion}
-
-Descubre las mejores ofertas y lanzamientos del catálogo ${titulo.toLowerCase()} ${año}. Ideal para emprendedoras, vendedoras y amantes de los cosméticos y calzado en México. Suscríbete para más catálogos y novedades.
-
-🔥 HASHTAGS (Actualizados con tendencias):
-${hashtagsCombinados.join(" ")}
-
-🏷️ ETIQUETAS (YouTube Studio):
-${titulo.toLowerCase()}, ${titulo.toLowerCase()} ${año}, ${etiquetas.join(", ")}
-
-⏰ MEJORES HORARIOS (MX):
-${horarios.join(", ")}
-
-💡 Alternativa de título:
-${titulo.toLowerCase()} — Catálogo ${año} (Lo más nuevo)
-      `;
-
-      document.getElementById("resultado").textContent = resultado;
-    }
-  </script>
+<script src="trends.js"></script>
 </body>
 </html>
