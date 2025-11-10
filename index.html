@@ -3,111 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador de SEO y Tendencias YouTube 2025</title>
+  <title>Generador SEO YouTube</title>
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #eef2ff, #f9fafb);
-      color: #222;
-      margin: 0;
-      padding: 20px;
-    }
-    .container {
-      max-width: 800px;
-      background: #fff;
-      border-radius: 15px;
-      margin: auto;
-      padding: 25px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    h1 {
-      text-align: center;
-      color: #2563eb;
-      margin-bottom: 20px;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: 600;
-    }
-    input, textarea {
-      width: 100%;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      padding: 10px;
-      font-size: 15px;
-      resize: none;
-    }
-    button {
-      width: 100%;
-      background: #2563eb;
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: 10px;
-      font-size: 16px;
-      margin-top: 15px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #1d4ed8;
-    }
-    #loader {
-      display: none;
-      text-align: center;
-      margin: 10px 0;
-      color: #555;
-    }
-    #err {
-      display: none;
-      color: red;
-      font-weight: bold;
-      margin-top: 10px;
-      text-align: center;
-    }
-    #resultado {
-      white-space: pre-wrap;
-      background: #f4f4f5;
-      padding: 15px;
-      border-radius: 10px;
-      margin-top: 20px;
-      font-family: monospace;
-      font-size: 14px;
-    }
-    #tendencias {
-      list-style: none;
-      padding: 0;
-      margin-top: 10px;
-    }
-    #tendencias li {
-      background: #f1f5f9;
-      margin: 4px 0;
-      padding: 6px 10px;
-      border-radius: 6px;
-    }
+    body { font-family: Arial; background: #111; color: #eee; padding: 20px; }
+    input, textarea { width: 100%; padding: 8px; margin: 6px 0; border-radius: 6px; border: none; }
+    button { background: #ff0077; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+    button:hover { background: #ff3399; }
+    #resultado { white-space: pre-line; background: #222; padding: 15px; border-radius: 10px; margin-top: 15px; }
+    #err { display:none; background:#440000; color:#ff5555; padding:10px; border-radius:6px; margin-top:10px; }
+    #status { margin-top: 10px; font-style: italic; color: #aaa; }
+    #loader { display:none; margin:10px 0; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🧠 Generador SEO Automático (YouTube API)</h1>
-    
-    <label>Marca o catálogo:</label>
-    <input type="text" id="titulo" placeholder="Ejemplo: Catálogo Cyzone Campaña 1 2026 México">
-
-    <label>Descripción breve:</label>
-    <textarea id="descripcion" placeholder="Escribe una descripción general o resumen del catálogo..."></textarea>
-
-    <button id="generarBtn">Generar SEO</button>
-    <div id="loader">⏳ Cargando datos desde YouTube...</div>
-    <div id="err"></div>
-
-    <h3 id="status"></h3>
-
-    <div id="resultado"></div>
-    
-    <h3>Tendencias de videos:</h3>
-    <ul id="tendencias"></ul>
-  </div>
+  <h2>🎯 Generador SEO YouTube 2025</h2>
+  <input id="titulo" placeholder="Marca o nombre del catálogo">
+  <textarea id="descripcion" rows="3" placeholder="Descripción o resumen del video"></textarea>
+  <button id="generarBtn">Generar SEO</button>
+  <div id="status"></div>
+  <div id="loader">⏳ Cargando...</div>
+  <div id="err"></div>
+  <h3>Tendencias encontradas</h3>
+  <ul id="tendencias"></ul>
+  <div id="resultado"></div>
 
   <script src="trends.js"></script>
 </body>
