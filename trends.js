@@ -27,9 +27,13 @@ function setStatus(msg){const s=$('status');if(s)s.textContent='Estado: '+msg;}
 function showError(msg){const e=$('err');if(e){e.style.display='block';e.textContent=msg;}console.error(msg);}
 function clearError(){const e=$('err');if(e){e.style.display='none';e.textContent='';}}
 
+// FETCH seguro para evitar 403
 async function fetchJson(url){
-  const r=await fetch(url);
-  if(!r.ok)throw new Error(`HTTP ${r.status} ${r.statusText}`);
+  const r = await fetch(url, {
+    mode: 'cors',
+    referrerPolicy: 'no-referrer'
+  });
+  if(!r.ok) throw new Error(`HTTP ${r.status} ${r.statusText}`);
   return r.json();
 }
 
@@ -144,7 +148,6 @@ ${title2}
   `.trim();
 }
 
-// FILTRO DE NICHO: solo videos relacionados con catálogos, cosméticos o calzado
 function esVideoDeNicho(video){
   const texto = `${video?.snippet?.title || ''} ${video?.snippet?.description || ''}`.toLowerCase();
   return /(catalogo|catálogo|cosmetico|cosmético|belleza|zapato|calzado|moda|fragancia|perfume)/.test(texto);
@@ -157,10 +160,8 @@ async function runGenerator({brand,campaign,summary,country='MX'}){
     const q=`${brand} ${campaign}`.trim()||'catalogos cosmeticos calzado';
     let searchJson=await searchVideos(q,country,MAX_SEARCH).catch(()=>null);
     let items=(searchJson&&searchJson.items)?searchJson.items:[];
-    
-    // FILTRO
     items = items.filter(esVideoDeNicho);
-    
+
     if(!items.length){
       setStatus('sin resultados, buscando populares del nicho...');
       const pop=await fetchJson(`${YT_BASE}/videos?part=snippet&chart=mostPopular&regionCode=${country}&maxResults=${MAX_VIDEO_DETAILS}&key=${API_KEY}`);
@@ -207,7 +208,7 @@ function initUI(){
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
-  if(!API_KEY||API_KEY==='YOUR_API_KEY_HERE'){
+  if(!API_KEY||API_KEY==='AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw'){
     showError('API key no configurada.');
   }else{
     clearError();
