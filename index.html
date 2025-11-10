@@ -2,110 +2,134 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Buscador YouTube API v3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generador SEO YouTube 2025</title>
   <style>
-    #err { color: red; display: none; }
-    #status { margin-bottom: 10px; font-weight: bold; }
-    ul { list-style-type: none; padding: 0; }
-    li { margin-bottom: 8px; }
+    body {
+      background: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #ff9800;
+      margin-bottom: 10px;
+    }
+    input, textarea, button {
+      width: 100%;
+      max-width: 500px;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+    }
+    button {
+      background: linear-gradient(45deg, #ff9800, #2196f3);
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+    #resultado {
+      background: #222;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      width: 100%;
+      max-width: 500px;
+      font-size: 15px;
+      white-space: pre-wrap;
+    }
+    ul {
+      margin-top: 20px;
+      background: #222;
+      padding: 15px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 500px;
+    }
+    li {
+      margin: 5px 0;
+      color: #ff9800;
+    }
   </style>
 </head>
 <body>
+  <h1>🎯 Generador SEO YouTube 2025</h1>
 
-<h2>Buscador YouTube (catálogos, cosméticos y calzado)</h2>
+  <input id="titulo" placeholder="Escribe el título del catálogo (ej. Catálogo Yanbal 2025)" />
+  <textarea id="descripcion" placeholder="Describe brevemente el contenido del catálogo"></textarea>
+  <button onclick="generarSEO()">Generar SEO Optimizado</button>
 
-<input type="text" id="inputQuery" placeholder="Escribe búsqueda..." style="width:300px;" />
-<button id="btnSearch">Buscar</button>
+  <div id="resultado"></div>
 
-<div id="status"></div>
-<div id="err"></div>
+  <h2>Tendencias Actuales en YouTube México</h2>
+  <ul id="tendencias"><li>Cargando...</li></ul>
 
-<ul id="resultList"></ul>
+  <!-- Conexión con tu API (archivo trends.js) -->
+  <script src="trends.js"></script>
 
-<script>
-  const API_KEY = 'AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw'; // Coloca tu API key aquí
-  const YT_BASE = 'https://www.googleapis.com/youtube/v3';
-  const MAX_RESULTS = 12;
+  <script>
+    function generarSEO() {
+      const titulo = document.getElementById("titulo").value.trim();
+      const descripcion = document.getElementById("descripcion").value.trim();
+      if (!titulo || !descripcion) {
+        alert("Por favor llena ambos campos");
+        return;
+      }
 
-  const $ = id => document.getElementById(id);
-  const setStatus = msg => {
-    const s = $('status');
-    if(s) s.textContent = msg;
-    console.log('Estado:', msg);
-  };
-  const showError = msg => {
-    const e = $('err');
-    if(e){
-      e.style.display = 'block';
-      e.textContent = msg;
+      const año = new Date().getFullYear();
+
+      // 🔍 Hashtags especializados en tu nicho
+      const hashtags = [
+        "#CatalogosDigitales", "#VentasPorCatalogo", "#CosmeticosMexico",
+        "#Calzado2025", "#EmprendedorasLatinas", "#BellezaYEstilo",
+        "#OfertasCatalogo", "#ProductosNuevos", "#Tendencias2025"
+      ];
+
+      // 🏷️ Etiquetas SEO optimizadas
+      const etiquetas = [
+        "catálogos digitales", "ventas por catálogo", "cosméticos", "calzado",
+        "emprendedoras México", "ofertas 2025", "productos de belleza",
+        "moda y estilo", "promociones catálogo"
+      ];
+
+      // 🕒 Mejores horarios basados en tráfico en MX
+      const horarios = [
+        "12:00-13:00", "18:00-19:00", "21:00-22:00"
+      ];
+
+      const resultado = `
+📢 TÍTULO SUGERIDO:
+${titulo.toLowerCase()} ${año} | Ofertas y Novedades
+
+📝 DESCRIPCIÓN SUGERIDA:
+${descripcion}
+
+Descubre las mejores ofertas y lanzamientos del catálogo ${titulo.toLowerCase()} ${año}. Ideal para emprendedoras, vendedoras y amantes de los cosméticos y calzado en MX. Suscríbete para más catálogos y novedades.
+
+🔥 HASHTAGS:
+${hashtags.join(" ")}
+
+🏷️ ETIQUETAS (YouTube Studio):
+${titulo.toLowerCase()}, ${titulo.toLowerCase()} ${año}, ${etiquetas.join(", ")}
+
+⏰ MEJORES HORARIOS (MX):
+${horarios.join(", ")}
+
+💡 Alternativa de título:
+${titulo.toLowerCase()} — Catálogo ${año} (Lo más nuevo)
+      `;
+
+      document.getElementById("resultado").textContent = resultado;
     }
-    console.error('Error:', msg);
-  };
-  const clearError = () => {
-    const e = $('err');
-    if(e){
-      e.style.display = 'none';
-      e.textContent = '';
-    }
-  };
-
-  async function fetchJson(url) {
-    const res = await fetch(url);
-    if(!res.ok) {
-      throw new Error(`HTTP ${res.status} ${res.statusText}`);
-    }
-    return res.json();
-  }
-
-  async function searchVideos(query) {
-    const q = encodeURIComponent(query);
-    const url = `${YT_BASE}/search?part=snippet&type=video&maxResults=${MAX_RESULTS}&q=${q}&relevanceLanguage=es&key=${API_KEY}`;
-    setStatus('Realizando petición a URL: ' + url);
-    return fetchJson(url);
-  }
-
-  function renderResults(items) {
-    const ul = $('resultList');
-    ul.innerHTML = '';
-    if(!items || items.length === 0){
-      ul.innerHTML = '<li>No se encontraron videos</li>';
-      return;
-    }
-    items.forEach(item => {
-      const videoId = item.id.videoId;
-      const title = item.snippet.title;
-      const published = new Date(item.snippet.publishedAt).toLocaleDateString();
-      const li = document.createElement('li');
-      li.innerHTML = `<a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer">${title}</a> - Publicado: ${published}`;
-      ul.appendChild(li);
-    });
-  }
-
-  $('btnSearch').addEventListener('click', async () => {
-    console.log('Botón pulsado');
-    clearError();
-    setStatus('Buscando videos...');
-    const query = $('inputQuery').value.trim();
-    if(!query){
-      showError('Por favor, escribe un término de búsqueda.');
-      setStatus('');
-      return;
-    }
-    try{
-      const data = await searchVideos(query);
-      console.log('Datos recibidos:', data);
-      renderResults(data.items);
-      setStatus('Búsqueda completada.');
-    } catch(e){
-      showError('Error al realizar búsqueda: ' + e.message);
-      setStatus('');
-    }
-  });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    setStatus('Listo para buscar.');
-  });
-</script>
-
+  </script>
 </body>
 </html>
