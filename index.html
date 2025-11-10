@@ -73,13 +73,31 @@
   <h2>Tendencias Actuales en YouTube México</h2>
   <ul id="tendencias"><li>Cargando...</li></ul>
 
-  <!-- Conexión con tu API (archivo trends.js) -->
+  <!-- Conexión a tu API -->
   <script src="trends.js"></script>
 
   <script>
+    // Variable global para guardar hashtags virales de tu API
+    let hashtagsVirales = [];
+
+    // ✅ Esta función será llamada desde tu archivo trends.js cuando carguen las tendencias
+    function mostrarTendencias(tendencias) {
+      const lista = document.getElementById("tendencias");
+      lista.innerHTML = "";
+
+      hashtagsVirales = tendencias.map(tag => "#" + tag.replace(/\s+/g, ""));
+
+      tendencias.forEach(tag => {
+        const li = document.createElement("li");
+        li.textContent = "#" + tag;
+        lista.appendChild(li);
+      });
+    }
+
     function generarSEO() {
       const titulo = document.getElementById("titulo").value.trim();
       const descripcion = document.getElementById("descripcion").value.trim();
+
       if (!titulo || !descripcion) {
         alert("Por favor llena ambos campos");
         return;
@@ -87,24 +105,23 @@
 
       const año = new Date().getFullYear();
 
-      // 🔍 Hashtags especializados en tu nicho
-      const hashtags = [
+      // 🔍 Hashtags de nicho
+      const hashtagsNicho = [
         "#CatalogosDigitales", "#VentasPorCatalogo", "#CosmeticosMexico",
         "#Calzado2025", "#EmprendedorasLatinas", "#BellezaYEstilo",
         "#OfertasCatalogo", "#ProductosNuevos", "#Tendencias2025"
       ];
 
-      // 🏷️ Etiquetas SEO optimizadas
+      // 🧩 Mezclamos hashtags virales + nicho (sin repetir)
+      const hashtagsCombinados = [...new Set([...hashtagsNicho, ...hashtagsVirales])].slice(0, 12);
+
       const etiquetas = [
         "catálogos digitales", "ventas por catálogo", "cosméticos", "calzado",
         "emprendedoras México", "ofertas 2025", "productos de belleza",
         "moda y estilo", "promociones catálogo"
       ];
 
-      // 🕒 Mejores horarios basados en tráfico en MX
-      const horarios = [
-        "12:00-13:00", "18:00-19:00", "21:00-22:00"
-      ];
+      const horarios = ["12:00-13:00", "18:00-19:00", "21:00-22:00"];
 
       const resultado = `
 📢 TÍTULO SUGERIDO:
@@ -113,10 +130,10 @@ ${titulo.toLowerCase()} ${año} | Ofertas y Novedades
 📝 DESCRIPCIÓN SUGERIDA:
 ${descripcion}
 
-Descubre las mejores ofertas y lanzamientos del catálogo ${titulo.toLowerCase()} ${año}. Ideal para emprendedoras, vendedoras y amantes de los cosméticos y calzado en MX. Suscríbete para más catálogos y novedades.
+Descubre las mejores ofertas y lanzamientos del catálogo ${titulo.toLowerCase()} ${año}. Ideal para emprendedoras, vendedoras y amantes de los cosméticos y calzado en México. Suscríbete para más catálogos y novedades.
 
-🔥 HASHTAGS:
-${hashtags.join(" ")}
+🔥 HASHTAGS (Actualizados con tendencias):
+${hashtagsCombinados.join(" ")}
 
 🏷️ ETIQUETAS (YouTube Studio):
 ${titulo.toLowerCase()}, ${titulo.toLowerCase()} ${año}, ${etiquetas.join(", ")}
