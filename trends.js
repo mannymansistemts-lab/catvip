@@ -1,52 +1,42 @@
-const API_KEY = "AIzaSyDlYWhDkEPsAIjedRk5Hnxs0bfAA7950EI"; // Tu API key activa
+const API_KEY = "AIzaSyDlYWhDkEPsAIjedRk5Hnxs0bfAA7950EI"; // tu API key de YouTube
 const YT_BASE = "https://www.googleapis.com/youtube/v3";
 const lista = document.getElementById("tendencias");
-
-// Palabras clave de tu nicho
-const NICHO_KEYWORDS = ["catalogo","cosmeticos","calzado","ventas","ofertas","productos","tendencias","moda","emprendedoras"];
 const AÑO = new Date().getFullYear();
 
-// Función para generar hashtags SEO (5 máximos) a partir de título y nicho
-function generarHashtagsSEO(titulo) {
-    // Limpiar título y dividir en palabras
-    let palabras = titulo.toLowerCase().replace(/[^a-z0-9\s]/gi,"").split(" ");
-    palabras = palabras.filter(w => w.length>2 && NICHO_KEYWORDS.includes(w) || NICHO_KEYWORDS.some(k => w.includes(k)));
-    
-    const hashtags = [];
-    // Agregar palabras del título
-    for(let w of palabras){
-        if(!hashtags.includes("#"+w)) hashtags.push("#"+w);
-        if(hashtags.length>=5) break;
-    }
-    // Completar hasta 5 con palabras clave del nicho
-    for(let k of NICHO_KEYWORDS){
-        if(hashtags.length>=5) break;
-        if(!hashtags.includes("#"+k)) hashtags.push("#"+k);
-    }
-    // Agregar año en uno de los hashtags
-    hashtags[0] = hashtags[0]+AÑO;
+// Función para extraer palabras clave del título y descripción
+function extraerPalabrasClave(titulo, descripcion, nicho) {
+    const texto = (titulo + " " + descripcion).toLowerCase().replace(/[^a-z0-9\s]/gi,"");
+    const palabras = texto.split(/\s+/).filter(w => w.length>2 && (nicho.some(k => w.includes(k))));
+    return [...new Set(palabras)];
+}
+
+// Generar hashtags SEO 100% reales
+function generarHashtags(titulo, descripcion, nicho){
+    let palabras = extraerPalabrasClave(titulo, descripcion, nicho);
+    if(palabras.length === 0) palabras = ["catalogo","cosmeticos","calzado","ventas"]; // fallback mínimo
+    const hashtags = palabras.slice(0,5).map(w => "#"+w.charAt(0).toUpperCase() + w.slice(1)+AÑO);
     return hashtags;
 }
 
-// Función para generar etiquetas SEO long-tail
-function generarEtiquetasSEO(titulo, canal) {
+// Generar etiquetas long-tail SEO
+function generarEtiquetas(titulo, descripcion, canal, nicho){
+    const palabras = extraerPalabrasClave(titulo, descripcion, nicho);
     const etiquetas = [
-        titulo.toLowerCase(),
-        `${titulo.toLowerCase()} ${AÑO}`,
-        `${titulo.toLowerCase()} catálogo`,
-        canal.toLowerCase(),
+        titulo,
+        `${titulo} ${AÑO}`,
+        canal,
+        ...palabras,
         "tendencias youtube",
-        "videos populares",
-        "ventas por catálogo",
-        "productos de belleza",
-        "calzado y moda"
+        "videos populares"
     ];
-    return etiquetas.join(", ");
+    return [...new Set(etiquetas)].join(", ");
 }
 
-// Función para obtener tendencias
-async function obtenerTendencias(region="MX") {
+// Función para obtener tendencias desde YouTube
+async function obtenerTendencias(region="MX"){
     lista.innerHTML = "<li>Cargando tendencias...</li>";
+    const NICHO_KEYWORDS = ["catalogo","cosmeticos","calzado","ventas","ofertas","productos","tendencias","moda","emprendedoras"];
+
     try {
         const url = `${YT_BASE}/videos?part=snippet,statistics&chart=mostPopular&regionCode=${region}&hl=es&maxResults=10&key=${API_KEY}`;
         const res = await fetch(url);
@@ -59,43 +49,46 @@ async function obtenerTendencias(region="MX") {
         }
 
         lista.innerHTML = "";
-        data.items.forEach(v=>{
-            const titulo = v.snippet.title;
-            const canal = v.snippet.channelTitle;
-            const id = v.id;
+        data.items.forEach(video => {
+            const titulo = video.snippet.title;
+            const descripcion = video.snippet.description;
+            const canal = video.snippet.channelTitle;
+            const id = video.id;
 
-            const hashtagsSEO = generarHashtagsSEO(titulo).join(" ");
-            const etiquetasSEO = generarEtiquetasSEO(titulo, canal);
+            const hashtags = generarHashtags(titulo, descripcion, NICHO_KEYWORDS).join(" ");
+            const etiquetas = generarEtiquetas(titulo, descripcion, canal, NICHO_KEYWORDS);
 
             const li = document.createElement("li");
             li.innerHTML = `
 <a href="https://www.youtube.com/watch?v=${id}" target="_blank">${titulo}</a> — ${canal}<br>
-🔥 Hashtags SEO: ${hashtagsSEO}<br>
-🏷️ Etiquetas SEO: ${etiquetasSEO}
+📝 Descripción real: ${descripcion}<br>
+🔥 Hashtags SEO: ${hashtags}<br>
+🏷️ Etiquetas SEO: ${etiquetas}
             `;
             lista.appendChild(li);
         });
 
-    } catch(e) {
+    } catch(e){
         lista.innerHTML = `<li style="color:red;">❌ Error al cargar tendencias: ${e.message}</li>`;
     }
 }
 
-// Ejecutar al cargar la página y al cambiar país
+// Ejecutar al cargar y cambiar país
 document.addEventListener("DOMContentLoaded", ()=>{
     const sel = document.getElementById("pais");
     obtenerTendencias(sel.value);
     sel.addEventListener("change", ()=>obtenerTendencias(sel.value));
 });
 
-// Función SEO para formulario manual
+// Generador manual SEO real
 function generarSEO(){
     const titulo = document.getElementById("titulo").value.trim();
     const descripcion = document.getElementById("descripcion").value.trim();
     if(!titulo || !descripcion) return alert("Por favor llena ambos campos");
+    const NICHO_KEYWORDS = ["catalogo","cosmeticos","calzado","ventas","ofertas","productos","tendencias","moda","emprendedoras"];
 
-    const hashtags = generarHashtagsSEO(titulo);
-    const etiquetas = generarEtiquetasSEO(titulo,"Tu Canal");
+    const hashtags = generarHashtags(titulo, descripcion, NICHO_KEYWORDS);
+    const etiquetas = generarEtiquetas(titulo, descripcion, "Tu Canal", NICHO_KEYWORDS);
 
     document.getElementById("resultado").textContent = `
 📢 TÍTULO SUGERIDO:
