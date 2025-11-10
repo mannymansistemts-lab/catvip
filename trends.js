@@ -1,62 +1,40 @@
-// ======== TENDENCIAS DE YOUTUBE MÉXICO ========
-// ✅ Coloca aquí tu API Key activa de YouTube Data API v3
-const API_KEY = "AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw";
+const API_KEY = "AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw"; // 👈 usa tu clave activa
+const YT_BASE = "https://www.googleapis.com/youtube/v3";
 
-// Configuración base
-const REGION = "MX";
-const MAX_RESULTS = 10;
-const LANG = "es";
+async function obtenerTendencias(region = "MX") {
+  const lista = document.getElementById("tendencias");
+  lista.innerHTML = "<li>Cargando tendencias...</li>";
 
-const $ = id => document.getElementById(id);
-
-// Función para obtener datos JSON desde la API
-async function fetchJson(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-  return res.json();
-}
-
-async function cargarTendencias() {
-  const status = $("status");
-  const lista = $("tendencias");
-
-  status.textContent = "Conectando con YouTube...";
   try {
-    // URL segura y compatible con claves simples
-    const url = `https://youtube.googleapis.com/youtube/v3/videos?` +
-      `part=snippet,statistics&chart=mostPopular&regionCode=${REGION}` +
-      `&maxResults=${MAX_RESULTS}&hl=${LANG}&key=${API_KEY}`;
+    const url = `${YT_BASE}/videos?part=snippet,statistics&chart=mostPopular&regionCode=${region}&hl=es&maxResults=10&key=${API_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
 
-    const data = await fetchJson(url);
-    if (!data.items || !data.items.length) {
-      throw new Error("No se recibieron datos de tendencias (items vacío).");
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${data.error?.message || "Error desconocido"}`);
+
+    if (!data.items || data.items.length === 0) {
+      lista.innerHTML = "<li>No hay tendencias disponibles.</li>";
+      return;
     }
 
     lista.innerHTML = "";
-    data.items.forEach(video => {
-      const id = video.id;
-      const title = video.snippet.title;
-      const channel = video.snippet.channelTitle;
-      const thumb = video.snippet.thumbnails.medium.url;
-      const views = video.statistics?.viewCount ? Number(video.statistics.viewCount).toLocaleString() : "N/A";
-
+    data.items.forEach(v => {
+      const titulo = v.snippet.title;
+      const canal = v.snippet.channelTitle;
+      const id = v.id;
       const li = document.createElement("li");
-      li.innerHTML = `
-        <img src="${thumb}" alt="${title}">
-        <div>
-          <a href="https://www.youtube.com/watch?v=${id}" target="_blank">${title}</a><br>
-          👤 ${channel}<br>
-          👁️ ${views} vistas
-        </div>
-      `;
+      li.innerHTML = `<a href="https://www.youtube.com/watch?v=${id}" target="_blank">${titulo}</a> — ${canal}`;
       lista.appendChild(li);
     });
 
-    status.textContent = "✅ Tendencias cargadas correctamente.";
-  } catch (err) {
-    status.textContent = `❌ Error al cargar tendencias: ${err.message}`;
+  } catch (e) {
+    console.error(e);
+    lista.innerHTML = `<li style="color:red;">❌ Error al cargar tendencias: ${e.message}</li>`;
   }
 }
 
-// Ejecutar al cargar la página
-document.addEventListener("DOMContentLoaded", cargarTendencias);
+document.addEventListener("DOMContentLoaded", () => {
+  const sel = document.getElementById("pais");
+  obtenerTendencias(sel.value);
+  sel.addEventListener("change", () => obtenerTendencias(sel.value));
+});
