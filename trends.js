@@ -1,31 +1,47 @@
-const express = require('express');
-const fetch = require('node-fetch');
-const cors = require('cors');
-const app = express();
+// ✅ trends.js — obtiene hashtags desde la API de YouTube o usa respaldo local
+const API_KEY = "AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw"; // ← pon aquí tu clave YouTube Data API v3
 
-const API_KEY = 'AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw'; // Cambia por tu API Key válida
-
-app.use(cors()); // Permite peticiones desde cualquier origen (para desarrollo)
-
-app.get('/search', async (req, res) => {
-  const query = req.query.q;
-  if (!query) return res.status(400).json({ error: 'Falta parámetro q' });
-
+async function obtenerTendenciasYT(regionCode = "MX", maxResults = 15) {
+  const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&regionCode=${regionCode}&maxResults=${maxResults}&key=${API_KEY}`;
   try {
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(query)}&key=${API_KEY}`;
-    const response = await fetch(url);
-    if (!response.ok) {
-      const errorData = await response.json();
-      return res.status(response.status).json(errorData);
-    }
-    const data = await response.json();
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+    const res = await fetch(url, { cache: "no-store" }); // fuerza sin cache
+    if (!res.ok) throw new Error("Error en la respuesta de la API");
+    const data = await res.json();
 
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor backend escuchando en http://localhost:${PORT}`);
-});
+    const tags = [];
+    data.items.forEach(video => {
+      if (video.snippet.tags) {
+        tags.push(...video.snippet.tags);
+      } else {
+        const palabras = video.snippet.title.split(" ");
+        palabras.forEach(p => {
+          if (p.length > 3 && !tags.includes(p)) tags.push(p);
+        });
+      }
+    });
+
+    // Limpieza y normalización
+    const hashtags = [...new Set(tags)]
+      .slice(0, 20)
+      .map(tag => "#" + tag.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚ]/g, "").toLowerCase());
+
+    console.log("✅ Hashtags desde YouTube:", hashtags);
+    return hashtags;
+  } catch (error) {
+    console.error("❌ Error al conectar con YouTube API:", error);
+    return generarHashtagsLocales();
+  }
+}
+
+function generarHashtagsLocales() {
+  const tags = [
+    "#catalogos2025", "#moda", "#belleza", "#perfumes",
+    "#rebajas", "#ofertas", "#modafemenina", "#ventasporcatalogo",
+    "#productosnuevos", "#emprendedores", "#catálogos", "#latam",
+    "#tendencias", "#influencer", "#cosmeticos"
+  ];
+  console.warn("⚠️ Usando hashtags locales de respaldo.");
+  return tags;
+}
+
+window.obtenerTendenciasYT = obtenerTendenciasYT;
