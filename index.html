@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎯 Generador SEO YouTube 2025</title>
+  <title>🎯 Generador SEO + Tendencias YouTube México 2025</title>
   <style>
     body {
-      background: #0d0d0d;
+      background: #0e0e0e;
       color: #fff;
       font-family: "Segoe UI", Arial, sans-serif;
       display: flex;
@@ -34,20 +34,15 @@
       outline: none;
       font-size: 16px;
     }
-    textarea {
-      resize: vertical;
-    }
     button {
       background: linear-gradient(45deg, #ff9800, #2196f3);
       color: white;
       cursor: pointer;
       transition: transform 0.3s ease;
     }
-    button:hover {
-      transform: scale(1.05);
-    }
+    button:hover { transform: scale(1.05); }
     #resultado {
-      background: #1c1c1c;
+      background: #1a1a1a;
       padding: 15px;
       border-radius: 8px;
       margin-top: 15px;
@@ -56,31 +51,40 @@
       font-size: 15px;
       white-space: pre-wrap;
     }
+    #status {
+      color: #ff9800;
+      font-style: italic;
+      margin-top: 10px;
+      text-align: center;
+    }
     ul {
-      margin-top: 20px;
-      background: #1c1c1c;
-      padding: 15px;
-      border-radius: 8px;
-      width: 100%;
-      max-width: 500px;
       list-style: none;
+      padding: 0;
+      max-width: 700px;
+      width: 100%;
+      background: #1a1a1a;
+      border-radius: 8px;
+      margin-top: 10px;
     }
     li {
-      margin: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
       border-bottom: 1px solid #333;
-      padding-bottom: 8px;
+      padding: 10px;
+    }
+    li img {
+      width: 120px;
+      border-radius: 8px;
+    }
+    li div {
+      flex: 1;
     }
     a {
       color: #4fc3f7;
       text-decoration: none;
     }
-    a:hover {
-      text-decoration: underline;
-    }
-    .loading {
-      color: #ff9800;
-      font-style: italic;
-    }
+    a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -93,7 +97,7 @@
   <div id="resultado"></div>
 
   <h2>🔥 Tendencias Actuales en YouTube México</h2>
-  <div id="status" class="loading">Cargando tendencias...</div>
+  <div id="status">Cargando tendencias...</div>
   <ul id="tendencias"></ul>
 
   <script>
@@ -149,7 +153,7 @@ ${titulo.toLowerCase()} — Catálogo ${año} (Lo más nuevo)
     }
   </script>
 
-  <!-- Script externo para tendencias -->
+  <!-- Archivo externo para tendencias -->
   <script src="trends.js"></script>
 </body>
 </html>
