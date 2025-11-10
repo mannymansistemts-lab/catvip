@@ -1,149 +1,53 @@
-// trends.js - versión corregida con proxy CORS
-const API_KEY = 'AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw'; // 🔑 pon tu clave YouTube Data API v3 real
-const YT_BASE = 'https://corsproxy.io/?https://www.googleapis.com/youtube/v3';
+// ✅ trends.js para GitHub Pages (con proxy y conexión a YouTube API)
+const API_KEY = "AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw"; // ← tu clave real de YouTube Data API v3
+const PROXY = "https://api.allorigins.win/raw?url="; // evita CORS
+const YT_BASE = "https://www.googleapis.com/youtube/v3";
 
-// Helpers DOM
-const $ = id => document.getElementById(id);
-const setStatus = msg => { if ($('status')) $('status').textContent = '⏳ ' + msg; };
-const showError = msg => { const e=$('err'); if(e){ e.style.display='block'; e.textContent=msg; }};
-const clearError = ()=>{ const e=$('err'); if(e){ e.style.display='none'; e.textContent=''; }};
-const loader = $('loader');
-
-function normalize(s) {
-  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/[^\w\s#-]/g,'').trim();
-}
-function makeHash(text){
-  const t = text.replace(/^#/, '').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/[^a-z0-9\s]/gi,'').trim().replace(/\s+/g,'');
-  return t ? '#' + t : '';
+// Función para buscar videos relacionados
+async function buscarVideosYT(query, region = "MX") {
+  const url = `${PROXY}${encodeURIComponent(
+    `${YT_BASE}/search?part=snippet&type=video&maxResults=10&q=${query}&regionCode=${region}&key=${API_KEY}`
+  )}`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error("Error al conectar a YouTube");
+  return res.json();
 }
 
-async function fetchJson(url) {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  return r.json();
-}
-async function searchVideos(query, region='MX') {
-  const url = `${YT_BASE}/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(query)}&regionCode=${region}&key=${API_KEY}`;
-  return fetchJson(url);
-}
-async function getVideoDetails(ids) {
-  if (!ids) return {items:[]};
-  const url = `${YT_BASE}/videos?part=snippet,statistics&id=${ids}&key=${API_KEY}`;
-  return fetchJson(url);
-}
-
-function extractTags(videos){
-  const tags=[], hours=[];
-  for(const v of videos){
-    const sn = v.snippet || {};
-    (sn.tags||[]).forEach(t=>tags.push(normalize(t)));
-    const desc = sn.description||'';
-    const found = desc.match(/#[A-Za-z0-9_áéíóúñ]+/g)||[];
-    found.forEach(h=>tags.push(normalize(h)));
-    if(sn.publishedAt){
-      const hmx = (new Date(sn.publishedAt).getUTCHours() -6 +24)%24;
-      hours.push(hmx);
-    }
-  }
-  return {tags,hours};
-}
-function freqSort(arr){
-  const map={}; arr.forEach(x=>{if(x) map[x]=(map[x]||0)+1});
-  return Object.keys(map).sort((a,b)=>map[b]-map[a]);
-}
-
-const brandExtra = {
-  arabela: ['#arabelamexico','#catalogosarabela','#perfumesarabela'],
-  fuller: ['#fuller2025','#catalogofuller','#fullerlatam'],
-  avon: ['#avonmexico','#catalogoavon','#avonofertas'],
-  yanbal: ['#yanbal2025','#catalogoyanbal','#yanbalmexico'],
-  natura: ['#naturamexico','#catalogonatura','#bellezanatura'],
-  cklass: ['#cklass2025','#modacklass','#catalogoscklass'],
-  price: ['#priceshoes','#calzadomoda','#catalogopriceshoes']
-};
-
-function generarSugerencias({brand,campaign,summary,country,topTags,topHours}){
-  const y = new Date().getFullYear();
-  const brandLow = brand.toLowerCase();
-  const hashtags = ['#vendemasporcatalogo','#catalogosvirtualeslatam'];
-  (brandExtra[brandLow]||[]).forEach(h=>hashtags.push(h));
-  topTags.slice(0,5).forEach(t=>{
-    const h = makeHash(t);
-    if(!hashtags.includes(h) && h.length>2) hashtags.push(h);
+// Extraer hashtags de los títulos y descripciones
+function extraerHashtags(videos) {
+  const hashtags = [];
+  videos.forEach((v) => {
+    const sn = v.snippet;
+    const desc = sn.description || "";
+    const title = sn.title || "";
+    const encontrados = (desc + " " + title).match(/#[A-Za-z0-9_áéíóúñ]+/g) || [];
+    encontrados.forEach((h) => {
+      if (!hashtags.includes(h.toLowerCase())) hashtags.push(h.toLowerCase());
+    });
   });
-
-  const etiquetas = [brand,`${brand} ${y}`,`${brand} ${campaign}`].concat(topTags.slice(0,10));
-  const title1 = `${brand} ${campaign} ${y} | Ofertas y Novedades`;
-  const title2 = `${brand} ${campaign} — Catálogo ${y} (Lo más nuevo)`;
-  const desc = `${summary}\n\nDescubre las mejores ofertas y lanzamientos de ${brand} en su catálogo ${campaign} ${y}. Ideal para vendedoras, clientas y amantes de la belleza y moda en ${country}.`;
-  const hours = topHours.slice(0,3).map(h=>`${h}:00-${(h+1)%24}:00`);
-
-  return {title1,title2,desc,hashtags,etiquetas,hours};
+  return hashtags.length ? hashtags : generarHashtagsLocales();
 }
 
-function mostrarResultado(s){
-  $('resultado').textContent = `
-📢 TÍTULO SUGERIDO:
-${s.title1}
-
-📝 DESCRIPCIÓN SUGERIDA:
-${s.desc}
-
-🔥 HASHTAGS:
-${s.hashtags.join(' ')}
-
-🏷️ ETIQUETAS (YouTube Studio):
-${s.etiquetas.join(', ')}
-
-⏰ MEJORES HORARIOS (MX):
-${s.hours.join(', ')}
-
-💡 Alternativa de título:
-${s.title2}
-  `.trim();
+// Hashtags de respaldo locales
+function generarHashtagsLocales() {
+  return [
+    "#catalogos2025", "#moda", "#belleza", "#cosmeticos", "#perfumes",
+    "#ofertas", "#rebajas", "#ventasporcatalogo", "#productosnuevos",
+    "#emprendedoras", "#latam", "#nuevocatalogo", "#tendencias2025"
+  ];
 }
 
-function mostrarTendencias(list){
-  const ul=$('tendencias');
-  ul.innerHTML='';
-  if(!list.length){ ul.innerHTML='<li>No hay tendencias</li>'; return; }
-  list.forEach(t=>{
-    const li=document.createElement('li');
-    li.textContent=t;
-    ul.appendChild(li);
-  });
-}
-
-async function runGenerator({brand,summary}){
-  clearError(); setStatus('Buscando en YouTube...'); loader.style.display='block';
-  try{
-    const search = await searchVideos(`${brand} catálogo 2025`, 'MX');
-    const ids = (search.items||[]).map(i=>i.id.videoId).filter(Boolean).join(',');
-    const details = await getVideoDetails(ids);
-    const {tags,hours}=extractTags(details.items);
-    const sortedTags=freqSort(tags);
-    const sortedHours=freqSort(hours);
-    const suger = generarSugerencias({ brand,campaign:'Campaña',summary,country:'MX', topTags:sortedTags,topHours:sortedHours });
-    mostrarResultado(suger);
-    mostrarTendencias((search.items||[]).map(v=>v.snippet.title));
-    setStatus('✅ Listo');
-  }catch(err){
-    showError('Error al conectar con la API. Usando valores locales.');
-    console.error(err);
-    const suger = generarSugerencias({ brand,campaign:'Campaña',summary,country:'MX',topTags:[],topHours:[19,20,21] });
-    mostrarResultado(suger);
-  }finally{
-    loader.style.display='none';
+// Función principal
+async function obtenerHashtagsYT(query) {
+  try {
+    const data = await buscarVideosYT(query);
+    const hashtags = extraerHashtags(data.items);
+    console.log("✅ Hashtags generados desde YouTube:", hashtags);
+    return hashtags;
+  } catch (err) {
+    console.error("❌ Error al conectar con la API:", err);
+    return generarHashtagsLocales();
   }
 }
 
-document.addEventListener('DOMContentLoaded',()=>{
-  $('generarBtn').addEventListener('click',()=>{
-    const brand=$('titulo').value.trim();
-    const desc=$('descripcion').value.trim();
-    if(!brand||!desc){ alert('Por favor llena los campos'); return; }
-    runGenerator({brand,summary:desc});
-  });
-});
+window.obtenerHashtagsYT = obtenerHashtagsYT;
