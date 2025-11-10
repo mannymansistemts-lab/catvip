@@ -1,10 +1,10 @@
 const API_KEY = 'AIzaSyDlYWhDkEPsAIjedRk5Hnxs0bfAA7950EI';
 const YT_BASE = 'https://www.googleapis.com/youtube/v3';
 const MAX_RESULTS = 10;
-const NICHO_KEYWORDS = ["catalogo","cosmeticos","calzado","ventas","ofertas","productos","tendencias","moda","emprendedoras"];
 const lista = document.getElementById('tendencias');
 const resultado = document.getElementById('resultado');
 const año = new Date().getFullYear();
+const NICHO_KEYWORDS = ["catalogo","cosmeticos","calzado","ventas","ofertas","productos","tendencias","moda","emprendedoras","campaña","mexico"];
 
 function extraerPalabras(texto){
   return texto.toLowerCase().replace(/[^a-z0-9\s]/gi,"").split(/\s+/)
@@ -34,8 +34,24 @@ async function buscarVideos(query){
     const res = await fetch(url);
     if(!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     const data = await res.json();
+
     if(!data.items || data.items.length===0){
-      lista.innerHTML="<li>No se encontraron resultados.</li>";
+      const hashtags = generarHashtags(query, query).join(" ");
+      const etiquetas = generarEtiquetas(query, query, "Tu Canal").toString();
+      resultado.textContent = `
+📢 TÍTULO SUGERIDO:
+${query} ${año}
+
+📝 DESCRIPCIÓN SUGERIDA:
+Descubre lo último sobre ${query} y encuentra productos, ofertas y tendencias. Ideal para emprendedoras y ventas por catálogo en México.
+
+🔥 HASHTAGS SEO:
+${hashtags}
+
+🏷️ ETIQUETAS SEO:
+${etiquetas}
+      `;
+      lista.innerHTML="<li>No se encontraron videos exactos, SEO generado automáticamente.</li>";
       return;
     }
 
@@ -69,7 +85,7 @@ async function buscarVideos(query){
 📢 TÍTULO OPTIMIZADO:
 ${t} ${año}
 
-📝 DESCRIPCIÓN:
+📝 DESCRIPCIÓN SUGERIDA:
 ${d}
 
 🔥 HASHTAGS SEO:
@@ -92,7 +108,6 @@ document.getElementById('btnSearch').addEventListener('click',()=>{
   buscarVideos(query);
 });
 
-// Inicialización
 document.addEventListener('DOMContentLoaded', ()=>{
   lista.innerHTML="<li>Listo para buscar.</li>";
 });
