@@ -1,92 +1,93 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Generador SEO YouTube 2025</title>
   <style>
     body {
-      background: #111;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f9fafb, #eef2ff);
+      color: #222;
+      margin: 0;
       padding: 20px;
     }
-    h1 { color: #ff9800; }
-    input, textarea, button {
-      width: 100%; max-width: 500px; margin-bottom: 10px;
-      padding: 10px; border-radius: 6px; border: none; outline: none;
-      font-size: 16px;
+    h1 {
+      text-align: center;
+      color: #3b82f6;
+      margin-bottom: 20px;
+    }
+    .container {
+      max-width: 700px;
+      background: white;
+      margin: 0 auto;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      padding: 25px;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 15px;
+      resize: none;
     }
     button {
-      background: linear-gradient(45deg, #ff9800, #2196f3);
-      color: white; cursor: pointer; transition: 0.3s;
+      display: block;
+      width: 100%;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
     }
-    button:hover { transform: scale(1.05); }
-    #resultado {
-      background: #222; padding: 15px; border-radius: 8px;
-      margin-top: 15px; width: 100%; max-width: 500px; white-space: pre-wrap;
+    button:hover {
+      background: #2563eb;
     }
-    ul {
-      margin-top: 20px; background: #222; padding: 15px;
-      border-radius: 8px; width: 100%; max-width: 500px;
+    .loading {
+      text-align: center;
+      font-weight: bold;
+      color: #888;
     }
-    li { margin: 5px 0; color: #ff9800; }
   </style>
 </head>
 <body>
-  <h1>🎯 Generador SEO YouTube 2025</h1>
+  <div class="container">
+    <h1>Generador SEO con Hashtags Automáticos</h1>
 
-  <input id="titulo" placeholder="Ej. Catálogo Avon 2025 México" />
-  <textarea id="descripcion" placeholder="Describe brevemente el catálogo..."></textarea>
-  <button onclick="generarSEO()">Generar SEO Optimizado</button>
+    <label for="titulo">Título del catálogo o video:</label>
+    <textarea id="titulo" placeholder="Ejemplo: Catálogo Cyzone Campaña 1 2026 México"></textarea>
 
-  <div id="resultado"></div>
+    <label for="hashtags">Hashtags sugeridos:</label>
+    <textarea id="hashtags" readonly placeholder="Aquí aparecerán los hashtags..."></textarea>
 
-  <h2>Tendencias Actuales en YouTube México</h2>
-  <ul id="tendencias"><li>Cargando...</li></ul>
+    <button id="btnGenerar">Generar Hashtags</button>
+    <div id="estado" class="loading"></div>
+  </div>
 
   <script src="trends.js"></script>
-
   <script>
-    function generarSEO() {
-      const titulo = document.getElementById("titulo").value.trim();
-      const descripcion = document.getElementById("descripcion").value.trim();
-      if (!titulo || !descripcion) return alert("Completa los campos");
+    document.getElementById("btnGenerar").addEventListener("click", async () => {
+      const estado = document.getElementById("estado");
+      estado.textContent = "🔄 Buscando tendencias en YouTube...";
+      const hashtags = await obtenerTendenciasYT("MX", 15);
+      document.getElementById("hashtags").value = hashtags.join(" ");
+      estado.textContent = "✅ Hashtags listos.";
+    });
 
-      const año = new Date().getFullYear();
-      const hashtags = [
-        "#CatalogosVirtuales", "#VentasPorCatalogo", "#Moda2025", "#BellezaLatina",
-        "#Emprendedoras", "#Ofertas2025", "#TendenciasMakeup", "#ZapatosModa",
-        "#Cosmeticos", "#CatalogosMexico"
-      ];
-
-      const etiquetas = [
-        "catálogo", "belleza", "moda", "cosméticos", "ventas por catálogo",
-        "catálogos digitales", "rebajas 2025", "ofertas", "emprendedoras", "productos nuevos"
-      ];
-
-      const resultado = `
-📢 TÍTULO:
-${titulo} ${año} | Novedades y Ofertas
-
-📝 DESCRIPCIÓN:
-${descripcion}
-
-Descubre el ${titulo} ${año} con las últimas ofertas, tendencias en moda, calzado y cosméticos.
-Ideal para emprendedoras y amantes de las ventas por catálogo.
-Suscríbete para más contenido exclusivo de Catálogos Virtuales y Vende Más por Catálogos.
-
-🔥 HASHTAGS:
-${hashtags.join(" ")}
-
-🏷️ ETIQUETAS:
-${titulo.toLowerCase()}, ${etiquetas.join(", ")}
-`;
-      document.getElementById("resultado").textContent = resultado;
-    }
+    // Carga automática al entrar
+    window.addEventListener("load", async () => {
+      const estado = document.getElementById("estado");
+      estado.textContent = "⏳ Cargando hashtags...";
+      const hashtags = await obtenerTendenciasYT("MX", 15);
+      document.getElementById("hashtags").value = hashtags.join(" ");
+      estado.textContent = "✅ Hashtags cargados automáticamente.";
+    });
   </script>
 </body>
 </html>
