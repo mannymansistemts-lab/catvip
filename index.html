@@ -2,103 +2,154 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Tendencias YouTube México 2025</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎯 Generador SEO YouTube 2025</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #111;
+      background: #0d0d0d;
       color: #fff;
+      font-family: "Segoe UI", Arial, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 20px;
     }
-    h1 { color: #ff9800; }
-    #status { margin-bottom: 10px; font-weight: bold; }
-    ul {
-      list-style: none;
-      padding: 0;
-      max-width: 600px;
+    h1 {
+      color: #ff9800;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    h2 {
+      color: #4fc3f7;
+      margin-top: 40px;
+      text-align: center;
+    }
+    input, textarea, button {
       width: 100%;
-      background: #222;
-      border-radius: 8px;
+      max-width: 500px;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+    }
+    textarea {
+      resize: vertical;
+    }
+    button {
+      background: linear-gradient(45deg, #ff9800, #2196f3);
+      color: white;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+    #resultado {
+      background: #1c1c1c;
       padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      width: 100%;
+      max-width: 500px;
+      font-size: 15px;
+      white-space: pre-wrap;
+    }
+    ul {
+      margin-top: 20px;
+      background: #1c1c1c;
+      padding: 15px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 500px;
+      list-style: none;
     }
     li {
-      margin-bottom: 10px;
+      margin: 8px 0;
       border-bottom: 1px solid #333;
-      padding-bottom: 10px;
+      padding-bottom: 8px;
     }
     a {
       color: #4fc3f7;
       text-decoration: none;
     }
-    a:hover { text-decoration: underline; }
+    a:hover {
+      text-decoration: underline;
+    }
+    .loading {
+      color: #ff9800;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
+  <h1>🎯 Generador SEO YouTube 2025</h1>
 
-  <h1>🔥 Tendencias YouTube México 2025</h1>
-  <div id="status">Cargando tendencias...</div>
+  <input id="titulo" placeholder="Escribe el título del video" />
+  <textarea id="descripcion" placeholder="Describe brevemente tu contenido..."></textarea>
+  <button onclick="generarSEO()">Generar SEO Optimizado</button>
+
+  <div id="resultado"></div>
+
+  <h2>🔥 Tendencias Actuales en YouTube México</h2>
+  <div id="status" class="loading">Cargando tendencias...</div>
   <ul id="tendencias"></ul>
 
   <script>
-    const API_KEY = 'AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw'; // 🔑 tu API key
-    const REGION = 'MX'; // 🇲🇽 región
-    const LANG = 'es'; // idioma
-    const MAX_RESULTS = 10;
-
-    const $ = id => document.getElementById(id);
-    const setStatus = msg => $('status').textContent = msg;
-
-    async function fetchJson(url) {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-      return res.json();
-    }
-
-    async function cargarTendencias() {
-      try {
-        const url = `https://www.googleapis.com/youtube/v3/videos?` +
-          `part=snippet,statistics&chart=mostPopular` +
-          `&regionCode=${REGION}&hl=${LANG}` +
-          `&maxResults=${MAX_RESULTS}&key=${API_KEY}`;
-          
-        const data = await fetchJson(url);
-        
-        if (!data.items) throw new Error("Respuesta vacía de YouTube");
-        renderTendencias(data.items);
-        setStatus('Tendencias actualizadas ✅');
-      } catch (e) {
-        setStatus('❌ Error al cargar tendencias: ' + e.message);
-      }
-    }
-
-    function renderTendencias(items) {
-      const ul = $('tendencias');
-      ul.innerHTML = '';
-      if (!items.length) {
-        ul.innerHTML = '<li>No hay tendencias disponibles.</li>';
+    // === Generador SEO ===
+    function generarSEO() {
+      const titulo = document.getElementById("titulo").value.trim();
+      const descripcion = document.getElementById("descripcion").value.trim();
+      if (!titulo || !descripcion) {
+        alert("Por favor completa ambos campos");
         return;
       }
-      items.forEach(video => {
-        const title = video.snippet.title;
-        const channel = video.snippet.channelTitle;
-        const videoId = video.id;
-        const views = video.statistics?.viewCount || 0;
 
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank">${title}</a><br>
-          👤 ${channel} — 👁️ ${Number(views).toLocaleString()} vistas
-        `;
-        ul.appendChild(li);
-      });
+      const año = new Date().getFullYear();
+
+      const hashtags = [
+        "#CatalogosDigitales", "#VentasPorCatalogo", "#CosmeticosMexico",
+        "#Calzado2025", "#EmprendedorasLatinas", "#BellezaYEstilo",
+        "#OfertasCatalogo", "#ProductosNuevos", "#Tendencias2025"
+      ];
+
+      const etiquetas = [
+        "catálogos digitales", "ventas por catálogo", "cosméticos", "calzado",
+        "emprendedoras México", "ofertas 2025", "productos de belleza",
+        "moda y estilo", "promociones catálogo"
+      ];
+
+      const horarios = ["12:00-13:00", "18:00-19:00", "21:00-22:00"];
+
+      const resultado = `
+📢 TÍTULO SUGERIDO:
+${titulo.toLowerCase()} ${año} | Ofertas y Novedades
+
+📝 DESCRIPCIÓN SUGERIDA:
+${descripcion}
+
+Descubre las mejores ofertas y lanzamientos del catálogo ${titulo.toLowerCase()} ${año}.
+Ideal para emprendedoras, vendedoras y amantes de los cosméticos y calzado en México.
+
+🔥 HASHTAGS:
+${hashtags.join(" ")}
+
+🏷️ ETIQUETAS (YouTube Studio):
+${titulo.toLowerCase()}, ${titulo.toLowerCase()} ${año}, ${etiquetas.join(", ")}
+
+⏰ MEJORES HORARIOS (MX):
+${horarios.join(", ")}
+
+💡 Alternativa de título:
+${titulo.toLowerCase()} — Catálogo ${año} (Lo más nuevo)
+      `;
+
+      document.getElementById("resultado").textContent = resultado;
     }
-
-    document.addEventListener('DOMContentLoaded', cargarTendencias);
   </script>
 
+  <!-- Script externo para tendencias -->
+  <script src="trends.js"></script>
 </body>
 </html>
-
