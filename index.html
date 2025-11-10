@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎯 Generador SEO + Tendencias YouTube México 2025</title>
+  <title>🎯 Generador SEO YouTube 2025 + Tendencias MX</title>
   <style>
     body {
-      background: #0e0e0e;
+      background: #111;
       color: #fff;
-      font-family: "Segoe UI", Arial, sans-serif;
+      font-family: Arial, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -17,12 +17,6 @@
     h1 {
       color: #ff9800;
       margin-bottom: 10px;
-      text-align: center;
-    }
-    h2 {
-      color: #4fc3f7;
-      margin-top: 40px;
-      text-align: center;
     }
     input, textarea, button {
       width: 100%;
@@ -38,11 +32,13 @@
       background: linear-gradient(45deg, #ff9800, #2196f3);
       color: white;
       cursor: pointer;
-      transition: transform 0.3s ease;
+      transition: 0.3s;
     }
-    button:hover { transform: scale(1.05); }
+    button:hover {
+      transform: scale(1.05);
+    }
     #resultado {
-      background: #1a1a1a;
+      background: #222;
       padding: 15px;
       border-radius: 8px;
       margin-top: 15px;
@@ -51,109 +47,82 @@
       font-size: 15px;
       white-space: pre-wrap;
     }
-    #status {
-      color: #ff9800;
-      font-style: italic;
-      margin-top: 10px;
-      text-align: center;
-    }
     ul {
-      list-style: none;
-      padding: 0;
-      max-width: 700px;
-      width: 100%;
-      background: #1a1a1a;
+      margin-top: 20px;
+      background: #222;
+      padding: 15px;
       border-radius: 8px;
-      margin-top: 10px;
+      width: 100%;
+      max-width: 500px;
     }
     li {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border-bottom: 1px solid #333;
-      padding: 10px;
-    }
-    li img {
-      width: 120px;
-      border-radius: 8px;
-    }
-    li div {
-      flex: 1;
+      margin: 8px 0;
+      color: #ff9800;
     }
     a {
       color: #4fc3f7;
       text-decoration: none;
     }
-    a:hover { text-decoration: underline; }
+    a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
   <h1>🎯 Generador SEO YouTube 2025</h1>
 
-  <input id="titulo" placeholder="Escribe el título del video" />
-  <textarea id="descripcion" placeholder="Describe brevemente tu contenido..."></textarea>
+  <input id="titulo" placeholder="Título del catálogo (ej. Catálogo Yanbal 2025)" />
+  <textarea id="descripcion" placeholder="Describe brevemente el contenido"></textarea>
   <button onclick="generarSEO()">Generar SEO Optimizado</button>
 
   <div id="resultado"></div>
 
-  <h2>🔥 Tendencias Actuales en YouTube México</h2>
-  <div id="status">Cargando tendencias...</div>
-  <ul id="tendencias"></ul>
+  <h2>🔥 Tendencias YouTube México</h2>
+  <ul id="tendencias"><li>Cargando...</li></ul>
+
+  <script src="trends.js"></script>
 
   <script>
-    // === Generador SEO ===
     function generarSEO() {
       const titulo = document.getElementById("titulo").value.trim();
       const descripcion = document.getElementById("descripcion").value.trim();
-      if (!titulo || !descripcion) {
-        alert("Por favor completa ambos campos");
-        return;
-      }
+      if (!titulo || !descripcion) return alert("Por favor llena ambos campos");
 
       const año = new Date().getFullYear();
 
       const hashtags = [
-        "#CatalogosDigitales", "#VentasPorCatalogo", "#CosmeticosMexico",
-        "#Calzado2025", "#EmprendedorasLatinas", "#BellezaYEstilo",
+        "#CatalogosDigitales", "#VentasPorCatalogo", "#BellezaYEstilo",
         "#OfertasCatalogo", "#ProductosNuevos", "#Tendencias2025"
       ];
-
       const etiquetas = [
-        "catálogos digitales", "ventas por catálogo", "cosméticos", "calzado",
-        "emprendedoras México", "ofertas 2025", "productos de belleza",
-        "moda y estilo", "promociones catálogo"
+        "catálogos digitales", "ventas por catálogo", "cosméticos", "moda",
+        "ofertas 2025", "productos de belleza", "novedades"
       ];
-
       const horarios = ["12:00-13:00", "18:00-19:00", "21:00-22:00"];
 
       const resultado = `
 📢 TÍTULO SUGERIDO:
-${titulo.toLowerCase()} ${año} | Ofertas y Novedades
+${titulo} ${año} | Ofertas y Novedades
 
-📝 DESCRIPCIÓN SUGERIDA:
+📝 DESCRIPCIÓN:
 ${descripcion}
 
-Descubre las mejores ofertas y lanzamientos del catálogo ${titulo.toLowerCase()} ${año}.
-Ideal para emprendedoras, vendedoras y amantes de los cosméticos y calzado en México.
+Descubre lo más nuevo del catálogo ${titulo} ${año}. Ideal para emprendedoras y amantes de la moda y belleza en México.
 
 🔥 HASHTAGS:
 ${hashtags.join(" ")}
 
-🏷️ ETIQUETAS (YouTube Studio):
+🏷️ ETIQUETAS:
 ${titulo.toLowerCase()}, ${titulo.toLowerCase()} ${año}, ${etiquetas.join(", ")}
 
-⏰ MEJORES HORARIOS (MX):
+⏰ HORARIOS IDEALES:
 ${horarios.join(", ")}
 
 💡 Alternativa de título:
-${titulo.toLowerCase()} — Catálogo ${año} (Lo más nuevo)
+${titulo} — Catálogo ${año} (Tendencias y Ofertas)
       `;
-
       document.getElementById("resultado").textContent = resultado;
     }
   </script>
-
-  <!-- Archivo externo para tendencias -->
-  <script src="trends.js"></script>
 </body>
 </html>
