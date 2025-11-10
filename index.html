@@ -6,61 +6,93 @@
   <title>Generador SEO YouTube 2025</title>
   <style>
     body {
-      background: #111;
-      color: #fff;
-      font-family: "Poppins", sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: 'Poppins', sans-serif;
       text-align: center;
       padding: 20px;
     }
-    h1 {
-      color: #ff9800;
-      margin-bottom: 15px;
-    }
-    input, textarea, button {
-      width: 100%;
+    h1 { color: #38bdf8; }
+    input, textarea {
+      width: 90%;
       max-width: 500px;
-      margin: 8px 0;
       padding: 10px;
+      margin: 10px auto;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 16px;
+      display: block;
     }
     button {
-      background: linear-gradient(45deg, #ff9800, #2196f3);
+      background: linear-gradient(45deg, #2563eb, #38bdf8);
       color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 16px;
       cursor: pointer;
       transition: 0.3s;
     }
     button:hover {
       transform: scale(1.05);
+      background: linear-gradient(45deg, #38bdf8, #2563eb);
     }
     #resultado {
-      background: #222;
+      background: #1e293b;
       padding: 15px;
-      border-radius: 8px;
-      margin-top: 20px;
+      margin-top: 15px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
       white-space: pre-wrap;
-      text-align: left;
-    }
-    #status {
-      margin-top: 10px;
-      color: #ccc;
     }
   </style>
 </head>
 <body>
   <h1>🎯 Generador SEO YouTube 2025</h1>
 
-  <input id="titulo" placeholder="Ej. Catálogo Price Shoes 2025" />
+  <input id="titulo" placeholder="Ejemplo: Catálogo Cyzone Campaña 1 2026 México" />
   <textarea id="descripcion" placeholder="Describe brevemente el catálogo..."></textarea>
-  <button id="generarBtn">Generar SEO Optimizado</button>
+  <button id="btnGenerar">Generar SEO con Hashtags</button>
 
-  <div id="status">Esperando entrada...</div>
   <div id="resultado"></div>
 
-  <h2>Tendencias actuales (MX)</h2>
-  <ul id="tendencias"><li>Cargando...</li></ul>
+  <script src="trends.js"></script>
+  <script>
+    document.getElementById("btnGenerar").addEventListener("click", async () => {
+      const titulo = document.getElementById("titulo").value.trim();
+      const descripcion = document.getElementById("descripcion").value.trim();
+      if (!titulo || !descripcion) {
+        alert("Por favor llena ambos campos");
+        return;
+      }
 
-  <script src="trends.js?v=<?=Date.now()?>"></script>
+      document.getElementById("resultado").textContent = "⏳ Buscando tendencias...";
+      const hashtags = await window.obtenerHashtagsYT(titulo);
+      const año = new Date().getFullYear();
+
+      const resultado = `
+📢 TÍTULO:
+${titulo} ${año} | Ofertas y Novedades
+
+📝 DESCRIPCIÓN:
+${descripcion}
+
+Descubre lo más nuevo del catálogo ${titulo} ${año}. Ideal para emprendedoras y amantes de la belleza y moda.
+
+🔥 HASHTAGS:
+${hashtags.join(" ")}
+
+🏷️ ETIQUETAS:
+${titulo.toLowerCase()}, ${titulo.toLowerCase()} ${año}, ${hashtags.slice(0,10).join(", ")}
+
+💡 SUGERENCIA EXTRA:
+${titulo} — Catálogo ${año} (Lo más nuevo)
+      `;
+      document.getElementById("resultado").textContent = resultado;
+    });
+  </script>
 </body>
 </html>
