@@ -300,4 +300,3 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTendencias(['Configura tu API key en trends.js para ver tendencias reales.']);
   }
 });
-
