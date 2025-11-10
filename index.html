@@ -1,34 +1,113 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Generador SEO YouTube 2025</title>
-<style>
-body { background:#111; color:#fff; font-family:Arial,sans-serif; display:flex; flex-direction:column; align-items:center; padding:20px; }
-h1 { color:#ff9800; margin-bottom:10px; }
-input, textarea, button { width:100%; max-width:500px; margin-bottom:10px; padding:10px; border-radius:6px; border:none; font-size:16px; }
-button { background:linear-gradient(45deg,#ff9800,#2196f3); color:white; cursor:pointer; transition:0.3s; }
-button:hover { transform:scale(1.05); }
-#resultado { background:#222; padding:15px; border-radius:8px; margin-top:15px; width:100%; max-width:500px; white-space:pre-wrap; }
-ul { margin-top:20px; background:#222; padding:15px; border-radius:8px; width:100%; max-width:500px; }
-li { margin:5px 0; color:#ff9800; }
-a { color:#4fc3f7; text-decoration:none; }
-a:hover { text-decoration:underline; }
-</style>
-</head>
-<body>
+const API_KEY = 'TU_API_KEY_AQUI';
+const YT_BASE = 'https://www.googleapis.com/youtube/v3';
+const MAX_RESULTS = 10;
+const lista = document.getElementById('tendencias');
+const resultado = document.getElementById('resultado');
+const año = new Date().getFullYear();
+const NICHO_KEYWORDS = ["catalogo","cosmeticos","calzado","ventas","ofertas","productos","tendencias","moda","emprendedoras","campaña","mexico"];
 
-<h1>🎯 Generador SEO YouTube 2025</h1>
+function extraerPalabras(texto){
+  return texto.toLowerCase().replace(/[^a-z0-9\s]/gi,"").split(/\s+/)
+    .filter(w=> w.length>2 && NICHO_KEYWORDS.some(k=>w.includes(k)));
+}
 
-<input id="inputQuery" placeholder="Escribe búsqueda (ej. Catálogo Yanbal 2025)" />
-<button id="btnSearch">Generar SEO Real</button>
+function generarHashtags(titulo, descripcion){
+  const palabras = extraerPalabras(titulo+" "+descripcion);
+  const hashtags = [];
+  for(let i=0;i<palabras.length && hashtags.length<5;i++){
+    hashtags.push("#"+palabras[i].charAt(0).toUpperCase()+palabras[i].slice(1)+año);
+  }
+  return hashtags;
+}
 
-<div id="resultado"></div>
+function generarEtiquetas(titulo, descripcion, canal){
+  const palabras = extraerPalabras(titulo+" "+descripcion);
+  const etiquetas = [titulo, `${titulo} ${año}`, canal, ...palabras];
+  return [...new Set(etiquetas)].join(", ");
+}
 
-<h2>Tendencias Reales en YouTube México</h2>
-<ul id="tendencias"><li>Cargando...</li></ul>
+async function buscarVideos(query){
+  lista.innerHTML="<li>Cargando resultados...</li>";
+  resultado.textContent="";
+  try{
+    const url = `${YT_BASE}/search?part=snippet&type=video&maxResults=${MAX_RESULTS}&q=${encodeURIComponent(query)}&relevanceLanguage=es&key=${API_KEY}`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    const data = await res.json();
 
-<script src="trends.js"></script>
-</body>
-</html>
+    if(!data.items || data.items.length===0){
+      const hashtags = generarHashtags(query, query).join(" ");
+      const etiquetas = generarEtiquetas(query, query, "Tu Canal").toString();
+      resultado.textContent = `
+📢 TÍTULO SUGERIDO:
+${query} ${año}
+
+📝 DESCRIPCIÓN SUGERIDA:
+Descubre lo último sobre ${query} y encuentra productos, ofertas y tendencias. Ideal para emprendedoras y ventas por catálogo en México.
+
+🔥 HASHTAGS SEO:
+${hashtags}
+
+🏷️ ETIQUETAS SEO:
+${etiquetas}
+      `;
+      lista.innerHTML="<li>No se encontraron videos exactos, SEO generado automáticamente.</li>";
+      return;
+    }
+
+    lista.innerHTML="";
+    data.items.forEach(item=>{
+      if(!item.id.videoId) return;
+      const id = item.id.videoId;
+      const titulo = item.snippet.title;
+      const descripcionText = item.snippet.description;
+      const canal = item.snippet.channelTitle;
+
+      const hashtags = generarHashtags(titulo, descripcionText).join(" ");
+      const etiquetas = generarEtiquetas(titulo, descripcionText, canal);
+
+      const li = document.createElement("li");
+      li.innerHTML = `
+<a href="https://www.youtube.com/watch?v=${id}" target="_blank">${titulo}</a> — ${canal}<br>
+📝 Descripción: ${descripcionText}<br>
+🔥 Hashtags SEO: ${hashtags}<br>
+🏷️ Etiquetas SEO: ${etiquetas}
+      `;
+      lista.appendChild(li);
+    });
+
+    const first = data.items.find(v=>v.id.videoId);
+    if(first){
+      const t = first.snippet.title;
+      const d = first.snippet.description;
+      const c = first.snippet.channelTitle;
+      resultado.textContent = `
+📢 TÍTULO OPTIMIZADO:
+${t} ${año}
+
+📝 DESCRIPCIÓN SUGERIDA:
+${d}
+
+🔥 HASHTAGS SEO:
+${generarHashtags(t,d).join(" ")}
+
+🏷️ ETIQUETAS SEO:
+${generarEtiquetas(t,d,c)}
+      `;
+    }
+
+  }catch(e){
+    lista.innerHTML=`<li style="color:red;">❌ Error al cargar resultados: ${e.message}</li>`;
+    resultado.textContent="";
+  }
+}
+
+document.getElementById('btnSearch').addEventListener('click',()=>{
+  const query = document.getElementById('inputQuery').value.trim();
+  if(!query) return alert("Escribe un término de búsqueda");
+  buscarVideos(query);
+});
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  lista.innerHTML="<li>Listo para buscar.</li>";
+});
