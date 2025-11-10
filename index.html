@@ -3,91 +3,112 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador SEO YouTube 2025</title>
+  <title>Generador de SEO y Tendencias YouTube 2025</title>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #f9fafb, #eef2ff);
+      background: linear-gradient(135deg, #eef2ff, #f9fafb);
       color: #222;
       margin: 0;
       padding: 20px;
     }
+    .container {
+      max-width: 800px;
+      background: #fff;
+      border-radius: 15px;
+      margin: auto;
+      padding: 25px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
     h1 {
       text-align: center;
-      color: #3b82f6;
+      color: #2563eb;
       margin-bottom: 20px;
     }
-    .container {
-      max-width: 700px;
-      background: white;
-      margin: 0 auto;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      padding: 25px;
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 600;
     }
-    textarea {
+    input, textarea {
       width: 100%;
-      height: 120px;
-      border: 1px solid #ccc;
       border-radius: 10px;
+      border: 1px solid #ccc;
       padding: 10px;
       font-size: 15px;
       resize: none;
     }
     button {
-      display: block;
       width: 100%;
-      background: #3b82f6;
+      background: #2563eb;
       color: white;
       border: none;
       padding: 12px;
       border-radius: 10px;
       font-size: 16px;
+      margin-top: 15px;
       cursor: pointer;
-      margin-top: 10px;
     }
     button:hover {
-      background: #2563eb;
+      background: #1d4ed8;
     }
-    .loading {
+    #loader {
+      display: none;
       text-align: center;
+      margin: 10px 0;
+      color: #555;
+    }
+    #err {
+      display: none;
+      color: red;
       font-weight: bold;
-      color: #888;
+      margin-top: 10px;
+      text-align: center;
+    }
+    #resultado {
+      white-space: pre-wrap;
+      background: #f4f4f5;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    #tendencias {
+      list-style: none;
+      padding: 0;
+      margin-top: 10px;
+    }
+    #tendencias li {
+      background: #f1f5f9;
+      margin: 4px 0;
+      padding: 6px 10px;
+      border-radius: 6px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Generador SEO con Hashtags Automáticos</h1>
+    <h1>🧠 Generador SEO Automático (YouTube API)</h1>
+    
+    <label>Marca o catálogo:</label>
+    <input type="text" id="titulo" placeholder="Ejemplo: Catálogo Cyzone Campaña 1 2026 México">
 
-    <label for="titulo">Título del catálogo o video:</label>
-    <textarea id="titulo" placeholder="Ejemplo: Catálogo Cyzone Campaña 1 2026 México"></textarea>
+    <label>Descripción breve:</label>
+    <textarea id="descripcion" placeholder="Escribe una descripción general o resumen del catálogo..."></textarea>
 
-    <label for="hashtags">Hashtags sugeridos:</label>
-    <textarea id="hashtags" readonly placeholder="Aquí aparecerán los hashtags..."></textarea>
+    <button id="generarBtn">Generar SEO</button>
+    <div id="loader">⏳ Cargando datos desde YouTube...</div>
+    <div id="err"></div>
 
-    <button id="btnGenerar">Generar Hashtags</button>
-    <div id="estado" class="loading"></div>
+    <h3 id="status"></h3>
+
+    <div id="resultado"></div>
+    
+    <h3>Tendencias de videos:</h3>
+    <ul id="tendencias"></ul>
   </div>
 
   <script src="trends.js"></script>
-  <script>
-    document.getElementById("btnGenerar").addEventListener("click", async () => {
-      const estado = document.getElementById("estado");
-      estado.textContent = "🔄 Buscando tendencias en YouTube...";
-      const hashtags = await obtenerTendenciasYT("MX", 15);
-      document.getElementById("hashtags").value = hashtags.join(" ");
-      estado.textContent = "✅ Hashtags listos.";
-    });
-
-    // Carga automática al entrar
-    window.addEventListener("load", async () => {
-      const estado = document.getElementById("estado");
-      estado.textContent = "⏳ Cargando hashtags...";
-      const hashtags = await obtenerTendenciasYT("MX", 15);
-      document.getElementById("hashtags").value = hashtags.join(" ");
-      estado.textContent = "✅ Hashtags cargados automáticamente.";
-    });
-  </script>
 </body>
 </html>
