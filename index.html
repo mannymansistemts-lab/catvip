@@ -1,136 +1,111 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generador SEO YouTube Nicho Catálogos</title>
-<style>
-  body {
-    font-family: "Segoe UI", sans-serif;
-    background: linear-gradient(180deg, #000, #111);
-    color: #fff;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-  }
-  .contenedor {
-    width: 95%;
-    max-width: 480px;
-    background: #1a1a1a;
-    border-radius: 15px;
-    padding: 20px;
-    margin-top: 25px;
-    box-shadow: 0 0 20px rgba(255,140,0,0.3);
-  }
-  h1 {
-    text-align: center;
-    color: #ffa500;
-    font-size: 1.4em;
-    margin-bottom: 15px;
-  }
-  label {
-    font-weight: bold;
-    color: #f8f8f8;
-    display: block;
-    margin-top: 10px;
-  }
-  input, textarea {
-    width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-    margin-top: 6px;
-    background: #222;
-    color: #fff;
-    resize: none;
-    font-size: 1em;
-  }
-  button {
-    width: 100%;
-    background: #ff7b00;
-    border: none;
-    color: #fff;
-    padding: 12px;
-    margin-top: 15px;
-    font-size: 1.1em;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s;
-  }
-  button:hover {
-    background: #ff9a00;
-  }
-  #status {
-    text-align: center;
-    margin-top: 10px;
-    color: #00c3ff;
-  }
-  #err {
-    display: none;
-    color: #ff5555;
-    background: rgba(255, 0, 0, 0.1);
-    padding: 8px;
-    border-radius: 8px;
-    text-align: center;
-    margin-top: 10px;
-  }
-  #resultado {
-    background: #111;
-    border-radius: 10px;
-    padding: 15px;
-    margin-top: 15px;
-    font-size: 0.95em;
-    white-space: pre-wrap;
-  }
-  ul {
-    list-style: none;
-    padding: 0;
-    margin-top: 10px;
-    background: #0f0f0f;
-    border-radius: 10px;
-  }
-  li {
-    padding: 6px 10px;
-    border-bottom: 1px solid #222;
-    font-size: 0.9em;
-    color: #ccc;
-  }
-  li:last-child {
-    border-bottom: none;
-  }
-  .subtitulo {
-    color: #00bfff;
-    margin-top: 20px;
-    text-align: center;
-    font-size: 1.1em;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <title>Buscador YouTube API v3</title>
+  <style>
+    #err { color: red; display: none; }
+    #status { margin-bottom: 10px; font-weight: bold; }
+    ul { list-style-type: none; padding: 0; }
+    li { margin-bottom: 8px; }
+  </style>
 </head>
 <body>
-<div class="contenedor">
-  <h1>🎯 Generador SEO YouTube 2025</h1>
 
-  <label for="titulo">Marca o catálogo:</label>
-  <input type="text" id="titulo" placeholder="Ejemplo: Jafra, Avon, Arabela">
+<h2>Buscador YouTube (catálogos, cosméticos y calzado)</h2>
 
-  <label for="descripcion">Resumen breve (opcional):</label>
-  <textarea id="descripcion" rows="3" placeholder="Escribe un breve resumen o descripción del catálogo..."></textarea>
+<input type="text" id="inputQuery" placeholder="Escribe búsqueda..." style="width:300px;" />
+<button id="btnSearch">Buscar</button>
 
-  <button id="generarBtn">Generar contenido SEO</button>
+<div id="status"></div>
+<div id="err"></div>
 
-  <p id="status">Esperando acción...</p>
-  <div id="err"></div>
+<ul id="resultList"></ul>
 
-  <h3 class="subtitulo">📈 Tendencias del nicho</h3>
-  <ul id="tendencias"><li>Cargando...</li></ul>
+<script>
+  const API_KEY = 'AIzaSyDAQVkMZ_l73dK7pt9gaccYPn5L0vA3PGw'; // Coloca tu API key aquí
+  const YT_BASE = 'https://www.googleapis.com/youtube/v3';
+  const MAX_RESULTS = 12;
 
-  <h3 class="subtitulo">🧠 Resultado sugerido</h3>
-  <div id="resultado">Aquí aparecerá tu SEO generado con IA</div>
-</div>
+  const $ = id => document.getElementById(id);
+  const setStatus = msg => {
+    const s = $('status');
+    if(s) s.textContent = msg;
+    console.log('Estado:', msg);
+  };
+  const showError = msg => {
+    const e = $('err');
+    if(e){
+      e.style.display = 'block';
+      e.textContent = msg;
+    }
+    console.error('Error:', msg);
+  };
+  const clearError = () => {
+    const e = $('err');
+    if(e){
+      e.style.display = 'none';
+      e.textContent = '';
+    }
+  };
 
-<script src="trends.js"></script>
+  async function fetchJson(url) {
+    const res = await fetch(url);
+    if(!res.ok) {
+      throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async function searchVideos(query) {
+    const q = encodeURIComponent(query);
+    const url = `${YT_BASE}/search?part=snippet&type=video&maxResults=${MAX_RESULTS}&q=${q}&relevanceLanguage=es&key=${API_KEY}`;
+    setStatus('Realizando petición a URL: ' + url);
+    return fetchJson(url);
+  }
+
+  function renderResults(items) {
+    const ul = $('resultList');
+    ul.innerHTML = '';
+    if(!items || items.length === 0){
+      ul.innerHTML = '<li>No se encontraron videos</li>';
+      return;
+    }
+    items.forEach(item => {
+      const videoId = item.id.videoId;
+      const title = item.snippet.title;
+      const published = new Date(item.snippet.publishedAt).toLocaleDateString();
+      const li = document.createElement('li');
+      li.innerHTML = `<a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer">${title}</a> - Publicado: ${published}`;
+      ul.appendChild(li);
+    });
+  }
+
+  $('btnSearch').addEventListener('click', async () => {
+    console.log('Botón pulsado');
+    clearError();
+    setStatus('Buscando videos...');
+    const query = $('inputQuery').value.trim();
+    if(!query){
+      showError('Por favor, escribe un término de búsqueda.');
+      setStatus('');
+      return;
+    }
+    try{
+      const data = await searchVideos(query);
+      console.log('Datos recibidos:', data);
+      renderResults(data.items);
+      setStatus('Búsqueda completada.');
+    } catch(e){
+      showError('Error al realizar búsqueda: ' + e.message);
+      setStatus('');
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setStatus('Listo para buscar.');
+  });
+</script>
+
 </body>
 </html>
